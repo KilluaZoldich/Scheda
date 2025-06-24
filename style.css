@@ -1046,106 +1046,168 @@ body {
 .exercise-card {
   background: var(--color-surface);
   border-radius: var(--radius-card);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-lg); /* Increased padding for more space */
+  margin-bottom: var(--spacing-lg); /* Increased margin for better separation */
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md); /* Added gap between elements inside the card */
 }
 
 .exercise-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-sm);
+  align-items: center; /* Align items center for better RPE tag alignment */
+  /* margin-bottom removed, using gap in .exercise-card now */
 }
 
 .exercise-name {
-  font-size: 18px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
+  font-size: 20px; /* Even larger for more prominence */
+  font-weight: 700; /* Bold */
   margin: 0;
   flex: 1;
-  letter-spacing: -0.023em;
+  letter-spacing: -0.025em; /* Adjusted spacing */
 }
 
 .exercise-rpe {
-  background: var(--color-primary); /* Use consistent primary accent color */
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-small);
-  font-size: 13px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
-  margin-left: var(--spacing-sm);
-}
-
-@media (prefers-color-scheme: dark) {
-  .exercise-rpe {
-    background: var(--color-accent-dark); /* Ensure dark mode uses the correct accent */
-  }
-}
-
-
-.exercise-details {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.detail-item {
-  text-align: center;
-}
-
-.detail-label {
-  font-size: 13px; /* Slightly larger */
-  color: var(--color-text-secondary);
+  background: var(--color-surface); /* Softer background */
+  color: var(--color-text-secondary); /* Subtler text color */
+  border: 1px solid var(--color-border); /* Add a border */
+  padding: 3px 8px; /* Adjusted padding */
+  border-radius: var(--radius-full); /* Pill shape */
+  font-size: 12px;
   font-weight: 500; /* Medium */
-  margin-bottom: var(--spacing-xs);
-  letter-spacing: -0.01em;
+  margin-left: var(--spacing-md); /* Increased margin */
+  line-height: 1.2;
+  white-space: nowrap; /* Prevent RPE tag from wrapping */
 }
 
-.detail-value {
-  font-size: 17px; /* Standard text size */
-  font-weight: 600; /* Semibold */
+/* RPE color theming is handled by --color-surface, --color-text-secondary, --color-border which adapt to light/dark mode */
+
+.exercise-info-grid { /* Renamed from exercise-details for clarity */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Responsive columns */
+  gap: var(--spacing-md); /* Increased gap */
+  /* margin-bottom removed */
+}
+
+.info-item { /* Renamed from detail-item */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content */
+  background-color: var(--color-background); /* Slight background tint */
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-small);
+}
+
+.info-label { /* Renamed from detail-label */
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-bottom: 2px; /* Reduced margin */
+  text-transform: uppercase; /* Uppercase for distinction */
+  letter-spacing: 0.05em; /* Wider letter spacing for labels */
+}
+
+.info-value { /* Renamed from detail-value */
+  font-size: 18px; /* Larger value text */
+  font-weight: 600;
   color: var(--color-text);
-  letter-spacing: -0.022em;
+  letter-spacing: -0.023em;
 }
 
 .exercise-notes {
-  font-size: 15px; /* Slightly larger */
+  font-size: 14px; /* Slightly smaller for de-emphasis */
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-md);
+  /* margin-bottom removed */
   font-style: italic;
-  font-weight: 500; /* Medium */
+  font-weight: 400; /* Regular weight */
+  padding: var(--spacing-sm);
+  background-color: var(--color-background);
+  border-radius: var(--radius-small);
 }
 
 .exercise-controls {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md); /* Increased gap */
   align-items: center;
+}
+
+.weight-input-wrapper { /* Added wrapper for icon and unit */
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button); /* Consistent button radius */
+  padding: 0 var(--spacing-sm);
+}
+
+.weight-input-wrapper svg {
+  margin-right: var(--spacing-sm);
+  color: var(--color-icon);
+  width: 18px;
+  height: 18px;
 }
 
 .weight-input {
   flex: 1;
-  min-width: 80px;
-  padding: var(--spacing-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  font-size: 15px; /* Slightly larger */
-  background: var(--color-background);
-  font-weight: 500; /* Medium */
+  padding: var(--spacing-sm) 0; /* Adjusted padding */
+  border: none; /* Remove default border */
+  font-size: 16px; /* Standard input size */
+  background: transparent; /* Transparent background */
+  font-weight: 500;
+  min-width: 50px; /* Ensure it doesn't get too small */
+  text-align: center;
 }
+
+.weight-input:focus {
+    outline: none; /* Remove focus outline as wrapper handles it */
+}
+
+.weight-input-wrapper:focus-within { /* Style wrapper on input focus */
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-hover);
+}
+
+
+.weight-unit {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    margin-left: var(--spacing-xs);
+}
+
 
 .timer-btn {
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-small);
+  border-radius: var(--radius-button); /* Consistent button radius */
   padding: var(--spacing-sm);
-  font-size: 14px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
+  display: flex; /* For icon alignment */
+  align-items: center;
+  justify-content: center;
+  width: 48px; /* Fixed width for icon button */
+  height: 48px; /* Fixed height for icon button */
   cursor: pointer;
-  min-width: 60px;
+  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out;
 }
+
+.timer-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.timer-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.timer-btn:active {
+    transform: scale(0.95);
+}
+
 
 /* Timer Section */
 .timer-container {

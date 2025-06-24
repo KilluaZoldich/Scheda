@@ -185,28 +185,32 @@ class FitTracker {
                 <div class="exercise-rpe">RPE ${exercise.rpe}</div>
             </div>
             
-            <div class="exercise-details">
-                <div class="detail-item">
-                    <div class="detail-label">Serie</div>
-                    <div class="detail-value">${exercise.sets}</div>
+            <div class="exercise-info-grid">
+                <div class="info-item">
+                    <div class="info-label">Serie</div>
+                    <div class="info-value">${exercise.sets}</div>
                 </div>
-                <div class="detail-item">
-                    <div class="detail-label">Ripetizioni</div>
-                    <div class="detail-value">${exercise.reps}</div>
+                <div class="info-item">
+                    <div class="info-label">Ripetizioni</div>
+                    <div class="info-value">${exercise.reps}</div>
                 </div>
-                <div class="detail-item">
-                    <div class="detail-label">Riposo</div>
-                    <div class="detail-value">${this.formatTime(exercise.rest)}</div>
+                <div class="info-item">
+                    <div class="info-label">Riposo</div>
+                    <div class="info-value">${this.formatTime(exercise.rest)}</div>
                 </div>
             </div>
             
-            <div class="exercise-notes">${exercise.notes}</div>
+            ${exercise.notes ? `<div class="exercise-notes">${exercise.notes}</div>` : ''}
             
             <div class="exercise-controls">
-                <input type="number" class="weight-input" placeholder="Peso (kg)" 
-                       id="weight-${this.currentDay}-${index}" min="0" step="0.5">
-                <button class="timer-btn" onclick="fitTracker.startRestTimer(${exercise.rest})">
-                    Timer
+                <div class="weight-input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                    <input type="number" class="weight-input" placeholder="Peso"
+                           id="weight-${this.currentDay}-${index}" min="0" step="0.25">
+                    <span class="weight-unit">kg</span>
+                </div>
+                <button class="timer-btn" onclick="fitTracker.startRestTimer(${exercise.rest})" aria-label="Avvia timer di riposo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </button>
             </div>
         `;
