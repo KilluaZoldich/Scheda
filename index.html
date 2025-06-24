@@ -76,6 +76,8 @@
                         <p id="workoutFocus">Esercizi multiarticolari pesanti</p>
                     </div>
                     <div class="workout-controls">
+                        <button class="btn btn--primary btn--large" id="startWorkoutSessionBtn">Inizia Allenamento</button>
+                        <button class="btn btn--danger btn--large" id="endWorkoutSessionBtn" style="display: none;">Termina Allenamento</button>
                         <select id="daySelector" class="form-control day-selector">
                             <option value="day1">Giorno 1</option>
                             <option value="day2">Giorno 2</option>
@@ -165,9 +167,15 @@
                     </div>
 
                     <div class="progress-card">
-                        <h3>Carichi Utilizzati</h3>
+                        <h3>Carichi Utilizzati (Ultimo Allenamento)</h3>
                         <div class="recent-weights" id="recentWeights">
-                            <p class="no-data">Inizia ad allenarti per vedere i tuoi progressi!</p>
+                            <p class="no-data">Nessun dato dall'ultimo allenamento.</p>
+                        </div>
+                    </div>
+                    <div class="progress-card">
+                        <h3>Storico Allenamenti</h3>
+                        <div class="workout-log-history" id="workoutLogHistory">
+                            <p class="no-data">Nessuno storico allenamenti trovato.</p>
                         </div>
                     </div>
                 </div>

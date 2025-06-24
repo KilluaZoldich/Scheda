@@ -9,6 +9,12 @@ class FitTracker {
             isRunning: false,
             interval: null
         };
+        this.sessionData = { // To store data for the current workout session
+            active: false,
+            currentDay: null,
+            startTime: null,
+            exercises: {} // { exerciseIndex: { name: "...", sets: [ {weight:reps:completed}, ... ] } }
+        };
         
         // Workout data structure
         this.workoutData = {
@@ -130,9 +136,13 @@ class FitTracker {
         });
 
         // Start workout button
-        window.startWorkout = () => {
+        window.startWorkout = () => { // This is the "Inizia Allenamento" on Home page
             this.switchSection('workout');
         };
+
+        // Workout session buttons
+        document.getElementById('startWorkoutSessionBtn').addEventListener('click', () => this.startWorkoutSession());
+        document.getElementById('endWorkoutSessionBtn').addEventListener('click', () => this.endWorkoutSession());
     }
 
     switchSection(sectionName) {
@@ -151,7 +161,7 @@ class FitTracker {
         this.currentSection = sectionName;
     }
 
-    renderWorkout() {
+    renderWorkout(isSessionActive = false) { // Added isSessionActive parameter
         const workout = this.workoutData[this.currentDay];
         if (!workout) return;
 
@@ -167,18 +177,28 @@ class FitTracker {
         exercisesList.innerHTML = '';
 
         workout.exercises.forEach((exercise, index) => {
-            const exerciseCard = this.createExerciseCard(exercise, index);
+            const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive); // Pass isSessionActive
             exercisesList.appendChild(exerciseCard);
+        });
+
+        // Show/hide exercise controls (add set, timer button) based on session state
+        document.querySelectorAll('.exercise-controls').forEach(controls => {
+            controls.style.display = isSessionActive ? 'flex' : 'none';
         });
 
         // Update home preview
         this.updateWorkoutPreview();
     }
 
-    createExerciseCard(exercise, index) {
+    createExerciseCard(exercise, index, isSessionActive) { // Added isSessionActive
         const card = document.createElement('div');
         card.className = 'exercise-card';
         
+        // Retrieve saved set data for this exercise if a session is active and data exists
+        const sessionExerciseData = (this.sessionData.active && this.sessionData.exercises[index])
+                                    ? this.sessionData.exercises[index].sets
+                                    : [];
+
         card.innerHTML = `
             <div class="exercise-header">
                 <h3 class="exercise-name">${exercise.name}</h3>
@@ -188,11 +208,11 @@ class FitTracker {
             <div class="exercise-info-grid">
                 <div class="info-item">
                     <div class="info-label">Serie</div>
-                    <div class="info-value">${exercise.sets}</div>
+                    <div class="info-value" id="sets-planned-${this.currentDay}-${index}">${exercise.sets}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Ripetizioni</div>
-                    <div class="info-value">${exercise.reps}</div>
+                    <div class="info-value" id="reps-planned-${this.currentDay}-${index}">${exercise.reps}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Riposo</div>
@@ -202,32 +222,158 @@ class FitTracker {
             
             ${exercise.notes ? `<div class="exercise-notes">${exercise.notes}</div>` : ''}
             
-            <div class="exercise-controls">
-                <div class="weight-input-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
-                    <input type="number" class="weight-input" placeholder="Peso"
-                           id="weight-${this.currentDay}-${index}" min="0" step="0.25">
-                    <span class="weight-unit">kg</span>
-                </div>
+            <div class="exercise-sets-tracking" id="sets-tracking-${this.currentDay}-${index}">
+                ${this.renderSetTrackers(exercise, index, isSessionActive, sessionExerciseData)}
+            </div>
+
+            <div class="exercise-controls" style="display: ${isSessionActive ? 'flex' : 'none'};">
+                <button class="btn btn--secondary" onclick="fitTracker.addSet('${this.currentDay}', ${index})">Aggiungi Set</button>
                 <button class="timer-btn" onclick="fitTracker.startRestTimer(${exercise.rest})" aria-label="Avvia timer di riposo">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </button>
             </div>
         `;
-
-        // Load saved weight
-        const savedWeight = this.getUserData(`weight-${this.currentDay}-${index}`);
-        if (savedWeight) {
-            card.querySelector('.weight-input').value = savedWeight;
-        }
-
-        // Save weight on input
-        card.querySelector('.weight-input').addEventListener('input', (e) => {
-            this.saveUserData(`weight-${this.currentDay}-${index}`, e.target.value);
-        });
-
         return card;
     }
+
+    renderSetTrackers(exercise, exerciseIndex, isSessionActive = false, sessionSets = []) {
+        let html = '';
+        // Use the greater of planned sets or actual sets done in the session for rendering rows
+        const numPlannedSets = parseInt(exercise.sets) || 0;
+        const numActualSets = sessionSets.length;
+        const numSetsToRender = Math.max(numPlannedSets, numActualSets);
+
+        for (let i = 0; i < numSetsToRender; i++) {
+            const setData = sessionSets[i] || {}; // Get data for this set if it exists
+            const weightValue = setData.weight || '';
+            const repsValue = setData.reps || '';
+            const isCompleted = setData.completed || false;
+
+            html += `
+                <div class="set-tracker-item ${isCompleted ? 'completed' : ''}" id="set-${this.currentDay}-${exerciseIndex}-${i}">
+                    <span class="set-number">Set ${i + 1}</span>
+                    <div class="weight-input-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                        <input type="number" class="weight-input set-weight-input" placeholder="Peso" value="${weightValue}"
+                               id="weight-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="0.25" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
+                        <span class="weight-unit">kg</span>
+                    </div>
+                    <div class="reps-input-wrapper">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+                        <input type="number" class="reps-input set-reps-input" placeholder="Reps" value="${repsValue}"
+                               id="reps-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="1" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
+                    </div>
+                    <button class="btn-icon set-complete-btn" onclick="fitTracker.toggleSetComplete('${this.currentDay}', ${exerciseIndex}, ${i})" aria-label="Completa set" ${!isSessionActive ? 'disabled' : ''}>
+                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg class="circle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                    </button>
+                </div>
+            `;
+        }
+        return html;
+    }
+
+    addSet(day, exerciseIndex) {
+        // This function would dynamically add a new set tracker row.
+        // For simplicity in this step, we'll assume a fixed number of sets initially.
+        // Later, this can be expanded.
+        console.log(`Adding set for ${day}, exercise ${exerciseIndex}`);
+        const exercise = this.workoutData[day].exercises[exerciseIndex];
+        const setsContainer = document.getElementById(`sets-tracking-${day}-${exerciseIndex}`);
+        const currentSetCount = setsContainer.children.length;
+
+        const newSetHtml = `
+            <div class="set-tracker-item" id="set-${day}-${exerciseIndex}-${currentSetCount}">
+                <span class="set-number">Set ${currentSetCount + 1}</span>
+                <div class="weight-input-wrapper">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                    <input type="number" class="weight-input set-weight-input" placeholder="Peso"
+                           id="weight-${day}-${exerciseIndex}-${currentSetCount}" min="0" step="0.25">
+                    <span class="weight-unit">kg</span>
+                </div>
+                 <div class="reps-input-wrapper">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+                    <input type="number" class="reps-input set-reps-input" placeholder="Reps"
+                           id="reps-${day}-${exerciseIndex}-${currentSetCount}" min="0" step="1">
+                </div>
+                <button class="btn-icon set-complete-btn" onclick="fitTracker.toggleSetComplete('${day}', ${exerciseIndex}, ${currentSetCount})" aria-label="Completa set">
+                    <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <svg class="circle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                </button>
+            </div>
+        `;
+        setsContainer.insertAdjacentHTML('beforeend', newSetHtml);
+
+        // Update the planned sets display
+        const setsPlannedElement = document.getElementById(`sets-planned-${day}-${exerciseIndex}`);
+        if (setsPlannedElement) {
+            setsPlannedElement.textContent = currentSetCount + 1;
+        }
+        // Also update in the workoutData structure (or a temporary session structure)
+        // For now, let's assume we might need a temporary session data structure
+        if (!this.sessionData) this.sessionData = {};
+        if (!this.sessionData[day]) this.sessionData[day] = {};
+        if (!this.sessionData[day][exerciseIndex]) this.sessionData[day][exerciseIndex] = { sets: [] }; // or clone from workoutData
+
+        // This is a simplification; ideally, you'd manage set data more robustly.
+        // For now, just visually adding, actual data handling for new sets needs more logic.
+        // Also, we need to ensure the new set's inputs are enabled if a session is active.
+        const newSetElement = setsContainer.lastElementChild;
+        if (newSetElement && this.sessionData.active) {
+            newSetElement.querySelectorAll('input, button').forEach(el => el.disabled = false);
+        }
+    }
+
+    saveSetDataOnInput(day, exerciseIndex, setIndex) {
+        if (!this.sessionData.active) return; // Only save if session is active
+        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
+        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, null); // null for completed status as it's just an input change
+    }
+
+    toggleSetComplete(day, exerciseIndex, setIndex) {
+        if (!this.sessionData.active) return; // Can only complete if session is active
+
+        const setItem = document.getElementById(`set-${day}-${exerciseIndex}-${setIndex}`);
+        const isCompleted = setItem.classList.toggle('completed');
+        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
+
+        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, isCompleted);
+
+        if (isCompleted) {
+            console.log(`Set ${setIndex + 1} for ${this.workoutData[day].exercises[exerciseIndex].name} completed with ${weightInput.value}kg for ${repsInput.value} reps.`);
+        }
+    }
+
+    saveSetData(day, exerciseIndex, setIndex, weight, reps, completedStatus) {
+        // Ensure sessionData and nested structures exist
+        if (!this.sessionData) this.sessionData = { active: false, currentDay: null, startTime: null, exercises: {} };
+        if (!this.sessionData.exercises) this.sessionData.exercises = {};
+
+        const exerciseKey = exerciseIndex.toString(); // Use string key for object
+        if (!this.sessionData.exercises[exerciseKey]) {
+            this.sessionData.exercises[exerciseKey] = {
+                name: this.workoutData[day].exercises[exerciseIndex].name, // Store exercise name
+                sets: []
+            };
+        }
+        // Ensure sets array is long enough
+        while (this.sessionData.exercises[exerciseKey].sets.length <= setIndex) {
+            this.sessionData.exercises[exerciseKey].sets.push({ weight: '', reps: '', completed: false });
+        }
+
+        // Update only the provided fields. If completedStatus is null, it means it's an input update, don't change completion.
+        const currentSetData = this.sessionData.exercises[exerciseKey].sets[setIndex];
+        currentSetData.weight = weight !== undefined ? weight : currentSetData.weight;
+        currentSetData.reps = reps !== undefined ? reps : currentSetData.reps;
+        if (completedStatus !== null) {
+            currentSetData.completed = completedStatus;
+        }
+
+        console.log("Session data updated:", JSON.parse(JSON.stringify(this.sessionData))); // Deep copy for logging
+    }
+
 
     startRestTimer(seconds) {
         this.switchSection('timer');
@@ -246,6 +392,76 @@ class FitTracker {
         this.updateTimerDisplay();
         this.updateTimerCircle();
     }
+
+    startWorkoutSession() {
+        this.sessionData = {
+            active: true,
+            currentDay: this.currentDay,
+            startTime: new Date(),
+            exercises: {}
+        };
+
+        document.getElementById('startWorkoutSessionBtn').style.display = 'none';
+        document.getElementById('endWorkoutSessionBtn').style.display = 'flex'; // Assuming flex display for btn
+        document.getElementById('daySelector').disabled = true;
+
+        // Enable inputs and set complete buttons within workout cards
+        this.renderWorkout(true); // Pass flag to enable inputs
+
+        console.log("Workout session started for day:", this.currentDay);
+        // Potentially scroll to the first exercise or show a start message
+    }
+
+    endWorkoutSession() {
+        if (!this.sessionData.active) return;
+
+        const endTime = new Date();
+        const durationMs = endTime - this.sessionData.startTime;
+
+        // TODO: Save sessionData to localStorage (userData.workoutHistory or similar)
+        // This part needs to be carefully designed based on how progress is stored.
+        // For now, let's log it and update basic stats.
+        console.log("Workout session ended. Duration:", durationMs, "Data:", this.sessionData);
+
+        this.userData.totalWorkouts = (this.userData.totalWorkouts || 0) + 1;
+
+        const today = new Date().toISOString().split('T')[0];
+        if (!this.userData.workoutDates.includes(today)) {
+            this.userData.workoutDates.push(today);
+        }
+        this.updateStreak(); // Assumes this.userData.workoutDates is up-to-date
+
+        // Store detailed workout log - NEW
+        if (!this.userData.workoutLogs) {
+            this.userData.workoutLogs = [];
+        }
+        this.userData.workoutLogs.push({
+            date: today,
+            day: this.sessionData.currentDay,
+            startTime: this.sessionData.startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            durationMs: durationMs,
+            exercises: this.sessionData.exercises
+        });
+
+
+        this.saveUserData(); // Save all userData changes
+        this.updateHomeStats();
+        this.renderProgress(); // Re-render progress to show new workout
+
+        // Reset UI
+        this.sessionData = { active: false, currentDay: null, startTime: null, exercises: {} }; // Reset sessionData
+        document.getElementById('startWorkoutSessionBtn').style.display = 'flex';
+        document.getElementById('endWorkoutSessionBtn').style.display = 'none';
+        document.getElementById('daySelector').disabled = false;
+
+        this.renderWorkout(false); // Re-render with inputs disabled
+
+        // Navigate to progress section to show results
+        this.switchSection('progress');
+        // alert('Allenamento terminato e salvato!'); // Alert can be removed or made more subtle
+    }
+
 
     toggleTimer() {
         if (this.timer.isRunning) {
@@ -429,7 +645,77 @@ class FitTracker {
     renderProgress() {
         this.renderWeekCalendar();
         this.updateProgressStats();
+        this.renderRecentWeights();
+        this.renderWorkoutLogHistory();
     }
+
+    renderRecentWeights() {
+        const recentWeightsContainer = document.getElementById('recentWeights');
+        if (!recentWeightsContainer) return;
+
+        const lastLog = this.userData.workoutLogs && this.userData.workoutLogs.length > 0
+                        ? this.userData.workoutLogs[this.userData.workoutLogs.length - 1]
+                        : null;
+
+        if (!lastLog || Object.keys(lastLog.exercises).length === 0) {
+            recentWeightsContainer.innerHTML = '<p class="no-data">Nessun dato dall\'ultimo allenamento.</p>';
+            return;
+        }
+
+        let html = '<ul class="stats-list">'; // Re-use stats-list styling for simplicity
+        for (const exerciseId in lastLog.exercises) {
+            const exercise = lastLog.exercises[exerciseId];
+            html += `<li class="stat-item"><span>${exercise.name}</span></li>`;
+            exercise.sets.forEach((set, index) => {
+                if (set.completed) {
+                    html += `<li class="log-set-item" style="padding-left: var(--spacing-lg);">Set ${index + 1}: ${set.weight || 'N/A'} kg x ${set.reps || 'N/A'} reps</li>`;
+                }
+            });
+        }
+        html += '</ul>';
+        recentWeightsContainer.innerHTML = html;
+    }
+
+    renderWorkoutLogHistory() {
+        const historyContainer = document.getElementById('workoutLogHistory');
+        if (!historyContainer) return;
+
+        if (!this.userData.workoutLogs || this.userData.workoutLogs.length === 0) {
+            historyContainer.innerHTML = '<p class="no-data">Nessuno storico allenamenti trovato.</p>';
+            return;
+        }
+
+        let html = '';
+        // Iterate in reverse to show newest first, but limit to e.g., last 10-20 logs for performance if many.
+        const logsToShow = this.userData.workoutLogs.slice().reverse().slice(0, 20);
+
+        logsToShow.forEach(log => {
+            const logDate = new Date(log.date);
+            const formattedDate = logDate.toLocaleDateString('it-IT', { year: 'numeric', month: 'short', day: 'numeric' });
+            const workoutName = this.workoutData[log.day] ? this.workoutData[log.day].name : `Allenamento Giorno ${log.day.replace('day','')}`;
+
+            html += `
+                <div class="log-entry">
+                    <div class="log-entry-header">
+                        <h4>${workoutName}</h4>
+                        <span class="date">${formattedDate}</span>
+                    </div>
+            `;
+            for (const exerciseId in log.exercises) {
+                const ex = log.exercises[exerciseId];
+                html += `<div class="log-exercise-item"><strong>${ex.name}</strong>:`;
+                ex.sets.forEach((set, index) => {
+                    if (set.completed) {
+                        html += `<div class="log-set-item">Set ${index + 1}: ${set.weight || 'N/A'} kg x ${set.reps || 'N/A'} reps</div>`;
+                    }
+                });
+                html += `</div>`;
+            }
+            html += `</div>`;
+        });
+        historyContainer.innerHTML = html;
+    }
+
 
     renderWeekCalendar() {
         const calendar = document.getElementById('weekCalendar');

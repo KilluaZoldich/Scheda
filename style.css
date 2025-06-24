@@ -664,12 +664,15 @@ select.form-control {
   --color-text-primary-light: #1D1D1F; /* Apple's dark gray for primary text */
   --color-text-secondary-light: #86868B; /* Apple's gray for secondary text */
   --color-accent-light: #FF6B00; /* Vibrant orange for primary actions and highlights */
+  --color-accent-rgb: 255, 107, 0; /* RGB for accent for opacity usage */
   --color-accent-hover-light: #E86000;
   --color-border-light: #E5E5E5; /* Softer border color */
   --color-card-border-light: rgba(0, 0, 0, 0.08);
   --color-icon-light: #86868B;
   --color-tab-active-light: var(--color-accent-light);
   --color-tab-inactive-light: #A0A0A5;
+  --color-error: #FF3B30; /* Apple's red for errors/danger */
+
 
   /* Dark Theme Palette - Modern Fitness */
   --color-background-dark: #000000; /* True black for OLED screens */
@@ -683,6 +686,7 @@ select.form-control {
   --color-icon-dark: #8E8E93;
   --color-tab-active-dark: var(--color-accent-dark);
   --color-tab-inactive-dark: #757575;
+  --color-error-dark: #FF453A; /* Apple's red for dark mode */
 
   /* Default to light theme */
   --color-background: var(--color-background-light);
@@ -696,6 +700,8 @@ select.form-control {
   --color-icon: var(--color-icon-light);
   --color-tab-active: var(--color-tab-active-light);
   --color-tab-inactive: var(--color-tab-inactive-light);
+  --color-error: var(--color-error-light); /* Default error color */
+
 
   /* Apple typography */
   --font-family-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -733,6 +739,7 @@ select.form-control {
     --color-icon: var(--color-icon-dark);
     --color-tab-active: var(--color-tab-active-dark);
     --color-tab-inactive: var(--color-tab-inactive-dark);
+  --color-error: var(--color-error-dark);
   }
 }
 
@@ -1042,6 +1049,28 @@ body {
   font-weight: 500; /* Medium */
 }
 
+.workout-controls {
+    display: flex;
+    flex-direction: column; /* Stack buttons and select */
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.btn--large {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 18px;
+}
+
+.btn--danger {
+    background-color: var(--color-error);
+    color: white;
+}
+
+.btn--danger:hover {
+    background-color: #c0152f; /* Darken error color */
+}
+
+
 /* Exercise Cards */
 .exercise-card {
   background: var(--color-surface);
@@ -1206,6 +1235,150 @@ body {
 
 .timer-btn:active {
     transform: scale(0.95);
+}
+
+/* Set Tracking Styles */
+.exercise-sets-tracking {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm); /* Add some space above the set trackers */
+}
+
+.set-tracker-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-small);
+    background-color: var(--color-background);
+    border: 1px solid transparent; /* For transition */
+    transition: background-color 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
+}
+
+.set-tracker-item.completed {
+    background-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.1); /* Light accent color */
+    border-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    .set-tracker-item.completed {
+        background-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.2);
+        border-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.5);
+    }
+}
+
+
+.set-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    min-width: 50px; /* Ensure alignment */
+}
+
+.reps-input-wrapper { /* Similar to weight-input-wrapper */
+    display: flex;
+    align-items: center;
+    flex: 0.5; /* Make it smaller than weight input */
+    background-color: var(--color-surface); /* Match card surface for inputs */
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    padding: 0 var(--spacing-sm);
+}
+
+.reps-input-wrapper svg {
+    margin-right: var(--spacing-sm);
+    color: var(--color-icon);
+    width: 16px; /* Smaller icon */
+    height: 16px;
+}
+
+.set-weight-input, .set-reps-input {
+    flex: 1;
+    padding: var(--spacing-sm) 0;
+    border: none;
+    font-size: 16px;
+    background: transparent;
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
+}
+
+.set-weight-input:focus, .set-reps-input:focus {
+    outline: none;
+}
+
+.reps-input-wrapper:focus-within { /* Style wrapper on input focus */
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-hover);
+}
+
+
+.btn-icon { /* For checkmark/circle button */
+    background: transparent;
+    border: none;
+    padding: var(--spacing-xs);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Circular button */
+    width: 36px;
+    height: 36px;
+    color: var(--color-text-secondary);
+    transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard);
+}
+
+.btn-icon:hover {
+    background-color: var(--color-border);
+}
+
+.btn-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.set-complete-btn .check-icon {
+    display: none;
+}
+.set-complete-btn .circle-icon {
+    display: inline-block;
+}
+
+.set-tracker-item.completed .set-complete-btn .check-icon {
+    display: inline-block;
+    color: var(--color-primary);
+}
+.set-tracker-item.completed .set-complete-btn .circle-icon {
+    display: none;
+}
+
+.set-tracker-item input:disabled,
+.set-tracker-item .set-complete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--color-background); /* Ensure disabled inputs have a clear background */
+}
+
+.set-tracker-item input:disabled::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+}
+.set-tracker-item input:disabled:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+   color: var(--color-text-secondary);
+   opacity: 0.7;
+}
+.set-tracker-item input:disabled::-moz-placeholder { /* Mozilla Firefox 19+ */
+   color: var(--color-text-secondary);
+   opacity: 0.7;
+}
+.set-tracker-item input:disabled:-ms-input-placeholder { /* Internet Explorer 10-11 */
+   color: var(--color-text-secondary);
+   opacity: 0.7;
+}
+.set-tracker-item input:disabled::placeholder { /* Most modern browsers */
+   color: var(--color-text-secondary);
+   opacity: 0.7;
 }
 
 
@@ -1413,6 +1586,55 @@ body {
   font-size: 15px; /* Slightly larger */
   font-weight: 500; /* Medium */
 }
+
+/* Workout Log History */
+.workout-log-history {
+    max-height: 400px; /* Limit height and make it scrollable */
+    overflow-y: auto;
+    padding-right: var(--spacing-sm); /* For scrollbar */
+}
+
+.log-entry {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+.log-entry:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.log-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.log-entry-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+.log-entry-header .date {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.log-exercise-item {
+    margin-bottom: var(--spacing-xs);
+    font-size: 14px;
+}
+.log-exercise-item strong {
+    font-weight: 500;
+}
+
+.log-set-item {
+    padding-left: var(--spacing-md);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
 
 /* Guide Section */
 .guide-header {
