@@ -658,27 +658,51 @@ select.form-control {
 
 /* Override design system with Apple palette */
 :root {
-  --apple-white: #FFFFFF;
-  --apple-black: #1C1C1E;
-  --apple-blue: #007AFF;
-  --apple-gray-dark: #2C2C2E;
-  --apple-gray-light: #F2F2F7;
-  --apple-gray-medium: #8E8E93;
-  --apple-gray-separator: #C6C6C8;
-  
-  /* Override design system colors with Apple palette */
-  --color-background: var(--apple-gray-light);
-  --color-surface: var(--apple-white);
-  --color-text: var(--apple-black);
-  --color-text-secondary: var(--apple-gray-medium);
-  --color-primary: var(--apple-blue);
-  --color-primary-hover: #0056CC;
-  --color-border: var(--apple-gray-separator);
-  --color-card-border: rgba(0, 0, 0, 0.05);
-  
+  /* Light Theme Palette - Modern Fitness */
+  --color-background-light: #F9F9F9; /* Slightly off-white for a softer look */
+  --color-surface-light: #FFFFFF; /* Pure white for cards and surfaces */
+  --color-text-primary-light: #1D1D1F; /* Apple's dark gray for primary text */
+  --color-text-secondary-light: #86868B; /* Apple's gray for secondary text */
+  --color-accent-light: #FF6B00; /* Vibrant orange for primary actions and highlights */
+  --color-accent-hover-light: #E86000;
+  --color-border-light: #E5E5E5; /* Softer border color */
+  --color-card-border-light: rgba(0, 0, 0, 0.08);
+  --color-icon-light: #86868B;
+  --color-tab-active-light: var(--color-accent-light);
+  --color-tab-inactive-light: #A0A0A5;
+
+  /* Dark Theme Palette - Modern Fitness */
+  --color-background-dark: #000000; /* True black for OLED screens */
+  --color-surface-dark: #1C1C1E; /* Apple's dark gray for cards */
+  --color-text-primary-dark: #FFFFFF;
+  --color-text-secondary-dark: #8E8E93; /* Lighter gray for secondary text in dark mode */
+  --color-accent-dark: #FF6B00; /* Orange remains vibrant */
+  --color-accent-hover-dark: #E86000;
+  --color-border-dark: #38383A; /* Darker border */
+  --color-card-border-dark: rgba(255, 255, 255, 0.12);
+  --color-icon-dark: #8E8E93;
+  --color-tab-active-dark: var(--color-accent-dark);
+  --color-tab-inactive-dark: #757575;
+
+  /* Default to light theme */
+  --color-background: var(--color-background-light);
+  --color-surface: var(--color-surface-light);
+  --color-text: var(--color-text-primary-light);
+  --color-text-secondary: var(--color-text-secondary-light);
+  --color-primary: var(--color-accent-light); /* Changed from --apple-blue */
+  --color-primary-hover: var(--color-accent-hover-light);
+  --color-border: var(--color-border-light);
+  --color-card-border: var(--color-card-border-light);
+  --color-icon: var(--color-icon-light);
+  --color-tab-active: var(--color-tab-active-light);
+  --color-tab-inactive: var(--color-tab-inactive-light);
+
   /* Apple typography */
-  --font-family-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, system-ui, sans-serif;
-  
+  --font-family-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-family-text: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Material Design standard easing */
+
+
   /* Apple spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -687,23 +711,28 @@ select.form-control {
   --spacing-xl: 32px;
   
   /* Apple radius */
-  --radius-card: 12px;
-  --radius-button: 8px;
-  --radius-small: 6px;
+  --radius-card: 18px; /* Even more rounded for a modern feel */
+  --radius-button: 12px; /* Even more rounded */
+  --radius-small: 10px; /* More rounded for smaller elements */
   
   /* Apple shadows */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08); /* Slightly deeper shadow for better depth */
+  --shadow-elevated: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--apple-black);
-    --color-surface: var(--apple-gray-dark);
-    --color-text: var(--apple-white);
-    --color-text-secondary: #EBEBF5;
-    --color-border: #38383A;
-    --color-card-border: rgba(255, 255, 255, 0.1);
+    --color-background: var(--color-background-dark);
+    --color-surface: var(--color-surface-dark);
+    --color-text: var(--color-text-primary-dark);
+    --color-text-secondary: var(--color-text-secondary-dark);
+    --color-primary: var(--color-accent-dark);
+    --color-primary-hover: var(--color-accent-hover-dark);
+    --color-border: var(--color-border-dark);
+    --color-card-border: var(--color-card-border-dark);
+    --color-icon: var(--color-icon-dark);
+    --color-tab-active: var(--color-tab-active-dark);
+    --color-tab-inactive: var(--color-tab-inactive-dark);
   }
 }
 
@@ -718,7 +747,10 @@ select.form-control {
 html {
   font-family: var(--font-family-apple);
   -webkit-font-smoothing: antialiased;
-  font-size: 16px;
+  -moz-osx-font-smoothing: grayscale; /* Added for Firefox */
+  font-size: 17px; /* Standard iOS size */
+  font-weight: 400; /* Regular weight */
+  letter-spacing: -0.022em; /* Apple standard letter spacing */
 }
 
 body {
@@ -741,15 +773,29 @@ body {
 
 /* Header */
 .app-header {
-  background: var(--color-surface);
+  background: rgba(var(--color-surface-rgb, 255, 255, 255), 0.8); /* Semi-transparent background */
   border-bottom: 1px solid var(--color-border);
   padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%); /* Enhanced blur effect */
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
+
+/* Add RGB versions of surface colors for backdrop-filter */
+:root {
+  --color-surface-light-rgb: 255, 255, 255;
+  --color-surface-dark-rgb: 28, 28, 30; /* 1C1C1E */
+  --color-surface-rgb: var(--color-surface-light-rgb); /* Default to light */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface-rgb: var(--color-surface-dark-rgb);
+  }
+}
+
 
 .header-content {
   display: flex;
@@ -758,14 +804,15 @@ body {
 }
 
 .app-title {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 28px; /* Larger title, more prominent */
+  font-weight: 700; /* Bold */
   margin: 0;
   color: var(--color-text);
+  letter-spacing: -0.028em;
 }
 
 .header-date {
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
   color: var(--color-text-secondary);
   font-weight: 500;
 }
@@ -779,16 +826,15 @@ body {
 
 .section {
   display: none;
-  animation: fadeIn 0.3s ease-in-out;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s var(--ease-standard), transform 0.3s var(--ease-standard);
 }
 
 .section.active {
   display: block;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Cards */
@@ -807,16 +853,18 @@ body {
 
 /* Welcome Card */
 .welcome-title {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 34px; /* Larger, more impactful */
+  font-weight: 700; /* Bold */
   margin: 0 0 var(--spacing-xs) 0;
   color: var(--color-text);
+  letter-spacing: -0.03em;
 }
 
 .welcome-subtitle {
-  font-size: 16px;
+  font-size: 17px; /* Standard text size */
   color: var(--color-text-secondary);
   margin: 0;
+  font-weight: 500; /* Medium */
 }
 
 /* Next Workout Card */
@@ -828,9 +876,10 @@ body {
 }
 
 .card-header h3 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px; /* More prominent */
+  font-weight: 600; /* Semibold */
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
 .workout-day {
@@ -838,20 +887,22 @@ body {
   color: white;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-small);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
 }
 
 .workout-preview h4 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard text size */
+  font-weight: 600; /* Semibold */
   margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: -0.022em;
 }
 
 .workout-preview p {
   color: var(--color-text-secondary);
   margin: 0 0 var(--spacing-lg) 0;
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
+  font-weight: 500; /* Medium */
 }
 
 /* Buttons */
@@ -861,41 +912,65 @@ body {
   justify-content: center;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-button);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard iOS button text size */
+  font-weight: 600; /* Semibold for buttons */
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out, box-shadow 0.2s var(--ease-standard);
   border: none;
   text-decoration: none;
-  font-family: inherit;
-  min-height: 44px;
+  font-family: var(--font-family-apple); /* Ensure button font */
+  min-height: 48px; /* Apple standard touch target */
+  letter-spacing: -0.022em;
+  will-change: transform, background-color; /* Optimize for animations */
 }
+
+.btn:active {
+  transform: scale(0.97); /* Slightly more pronounced active state */
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-hover); /* Focus ring */
+}
+
 
 .btn--primary {
   background: var(--color-primary);
   color: white;
 }
 
-.btn--primary:hover, .btn--primary:active {
+.btn--primary:hover {
   background: var(--color-primary-hover);
-  transform: scale(0.98);
 }
 
 .btn--secondary {
   background: var(--color-border);
   color: var(--color-text);
+  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out; /* Added for secondary */
 }
+
+.btn--secondary:hover {
+    background: var(--color-text-secondary); /* Darken on hover */
+}
+
 
 .btn--outline {
   background: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text);
+  transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard), transform 0.1s ease-out; /* Added for outline */
+}
+
+.btn--outline:hover {
+    background: var(--color-border);
+    color: var(--color-text);
 }
 
 .start-workout-btn {
   width: 100%;
-  font-size: 18px;
+  font-size: 18px; /* Larger text for primary call to action */
   padding: var(--spacing-md);
+  font-weight: 600; /* Semibold */
 }
 
 /* Stats Grid */
@@ -916,26 +991,29 @@ body {
 }
 
 .stat-number {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px; /* Slightly larger */
+  font-weight: 700; /* Bold */
   color: var(--color-primary);
   margin-bottom: var(--spacing-xs);
+  letter-spacing: -0.025em;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 13px; /* Slightly larger */
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 500; /* Medium */
+  letter-spacing: -0.01em;
 }
 
 /* Quote Card */
 .daily-quote {
   font-style: italic;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: 17px; /* Standard text size */
+  line-height: 1.45; /* Improved line height */
   color: var(--color-text-secondary);
   margin: 0;
   text-align: center;
+  font-weight: 500; /* Medium */
 }
 
 /* Workout Section */
@@ -944,19 +1022,24 @@ body {
 }
 
 .workout-info h2 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px; /* Larger section title */
+  font-weight: 700; /* Bold */
   margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: -0.028em;
 }
 
 .workout-info p {
   color: var(--color-text-secondary);
   margin: 0;
+  font-size: 15px; /* Slightly larger */
+  font-weight: 500; /* Medium */
 }
 
 .day-selector {
   margin-top: var(--spacing-md);
   width: 100%;
+  font-size: 17px; /* Standard text size for select */
+  font-weight: 500; /* Medium */
 }
 
 /* Exercise Cards */
@@ -977,21 +1060,29 @@ body {
 }
 
 .exercise-name {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 18px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
   margin: 0;
   flex: 1;
+  letter-spacing: -0.023em;
 }
 
 .exercise-rpe {
-  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+  background: var(--color-primary); /* Use consistent primary accent color */
   color: white;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-small);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
   margin-left: var(--spacing-sm);
 }
+
+@media (prefers-color-scheme: dark) {
+  .exercise-rpe {
+    background: var(--color-accent-dark); /* Ensure dark mode uses the correct accent */
+  }
+}
+
 
 .exercise-details {
   display: grid;
@@ -1005,23 +1096,26 @@ body {
 }
 
 .detail-label {
-  font-size: 12px;
+  font-size: 13px; /* Slightly larger */
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 500; /* Medium */
   margin-bottom: var(--spacing-xs);
+  letter-spacing: -0.01em;
 }
 
 .detail-value {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard text size */
+  font-weight: 600; /* Semibold */
   color: var(--color-text);
+  letter-spacing: -0.022em;
 }
 
 .exercise-notes {
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
   color: var(--color-text-secondary);
   margin-bottom: var(--spacing-md);
   font-style: italic;
+  font-weight: 500; /* Medium */
 }
 
 .exercise-controls {
@@ -1036,8 +1130,9 @@ body {
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
   background: var(--color-background);
+  font-weight: 500; /* Medium */
 }
 
 .timer-btn {
@@ -1046,8 +1141,8 @@ body {
   border: none;
   border-radius: var(--radius-small);
   padding: var(--spacing-sm);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
   cursor: pointer;
   min-width: 60px;
 }
@@ -1074,17 +1169,17 @@ body {
 .timer-track {
   fill: none;
   stroke: var(--color-border);
-  stroke-width: 8;
+  stroke-width: 12; /* Even Thicker track */
 }
 
 .timer-fill {
   fill: none;
   stroke: var(--color-primary);
-  stroke-width: 8;
+  stroke-width: 12; /* Even Thicker fill */
   stroke-linecap: round;
-  stroke-dasharray: 565.48;
+  stroke-dasharray: 565.48; /* 2 * PI * 90 */
   stroke-dashoffset: 565.48;
-  transition: stroke-dashoffset 1s linear;
+  transition: stroke-dashoffset 0.3s linear; /* Faster transition for smoother updates */
 }
 
 .timer-time {
@@ -1092,10 +1187,11 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 56px; /* Even larger timer text for emphasis */
+  font-weight: 200; /* Ultra-light weight for timer for a sleek look */
   color: var(--color-text);
-  font-family: var(--font-family-mono);
+  font-family: var(--font-family-apple); /* System font for consistency */
+  letter-spacing: -0.035em; /* Adjusted letter spacing */
 }
 
 .timer-controls {
@@ -1110,7 +1206,7 @@ body {
 }
 
 .timer-icon {
-  font-size: 20px;
+  font-size: 22px; /* Slightly larger icon */
 }
 
 .timer-presets,
@@ -1125,10 +1221,11 @@ body {
 
 .timer-presets h3,
 .custom-timer h3 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px; /* More prominent */
+  font-weight: 600; /* Semibold */
   margin: 0 0 var(--spacing-md) 0;
   text-align: left;
+  letter-spacing: -0.025em;
 }
 
 .preset-buttons {
@@ -1142,16 +1239,22 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
   padding: var(--spacing-md);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard text size */
+  font-weight: 600; /* Semibold */
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard), transform 0.1s ease-out;
+  letter-spacing: -0.022em;
+  will-change: background-color, color, transform;
 }
 
-.preset-btn:hover, .preset-btn:active {
+.preset-btn:hover {
   background: var(--color-primary);
   color: white;
+}
+.preset-btn:active {
   transform: scale(0.95);
+  background: var(--color-primary-hover); /* Consistent active state */
+  color: white;
 }
 
 .time-input {
@@ -1165,17 +1268,18 @@ body {
 .time-field {
   width: 60px;
   text-align: center;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 18px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
   background: var(--color-background);
+  letter-spacing: -0.023em;
 }
 
 .time-input span {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px; /* Larger separator */
+  font-weight: 600; /* Semibold */
   color: var(--color-text);
 }
 
@@ -1185,9 +1289,10 @@ body {
 }
 
 .progress-header h2 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px; /* Larger section title */
+  font-weight: 700; /* Bold */
   margin: 0;
+  letter-spacing: -0.028em;
 }
 
 .week-calendar {
@@ -1203,9 +1308,10 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-small);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px; /* Slightly larger */
+  font-weight: 600; /* Semibold */
   background: var(--color-background);
+  letter-spacing: -0.01em;
 }
 
 .day-item.completed {
@@ -1229,6 +1335,8 @@ body {
   align-items: center;
   padding: var(--spacing-sm) 0;
   border-bottom: 1px solid var(--color-border);
+  font-size: 17px; /* Standard text size */
+  font-weight: 500; /* Medium */
 }
 
 .stat-item:last-child {
@@ -1240,6 +1348,8 @@ body {
   color: var(--color-text-secondary);
   font-style: italic;
   margin: var(--spacing-lg) 0;
+  font-size: 15px; /* Slightly larger */
+  font-weight: 500; /* Medium */
 }
 
 /* Guide Section */
@@ -1248,9 +1358,10 @@ body {
 }
 
 .guide-header h2 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px; /* Larger section title */
+  font-weight: 700; /* Bold */
   margin: 0;
+  letter-spacing: -0.028em;
 }
 
 .rpe-scale {
@@ -1266,14 +1377,14 @@ body {
 }
 
 .rpe-number {
-  width: 40px;
-  height: 40px;
+  width: 44px; /* Slightly larger */
+  height: 44px; /* Slightly larger */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 700; /* Bold */
+  font-size: 17px; /* Standard text size */
   color: white;
   flex-shrink: 0;
 }
@@ -1285,15 +1396,17 @@ body {
 .rpe-6 { background: var(--color-primary); }
 
 .rpe-description h4 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard text size */
+  font-weight: 600; /* Semibold */
   margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: -0.022em;
 }
 
 .rpe-description p {
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
   color: var(--color-text-secondary);
   margin: 0;
+  font-weight: 500; /* Medium */
 }
 
 .tips-list {
@@ -1308,30 +1421,32 @@ body {
 }
 
 .tip-number {
-  width: 32px;
-  height: 32px;
+  width: 36px; /* Slightly larger */
+  height: 36px; /* Slightly larger */
   border-radius: 50%;
   background: var(--color-primary);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 700; /* Bold */
+  font-size: 17px; /* Standard text size */
   flex-shrink: 0;
 }
 
 .tip-content h4 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px; /* Standard text size */
+  font-weight: 600; /* Semibold */
   margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: -0.022em;
 }
 
 .tip-content p {
-  font-size: 14px;
+  font-size: 15px; /* Slightly larger */
   color: var(--color-text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.45; /* Improved line height */
+  font-weight: 500; /* Medium */
 }
 
 /* Tab Bar */
@@ -1342,12 +1457,12 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 428px;
-  background: var(--color-surface);
+  background: rgba(var(--color-surface-rgb, 255, 255, 255), 0.8); /* Semi-transparent background */
   border-top: 1px solid var(--color-border);
   display: flex;
   padding: var(--spacing-sm) 0 calc(var(--spacing-sm) + env(safe-area-inset-bottom));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%); /* Enhanced blur effect */
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   z-index: 1000;
 }
 
@@ -1362,21 +1477,29 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--color-text-secondary);
+  color: var(--color-tab-inactive);
 }
 
 .tab-item.active {
-  color: var(--color-primary);
+  color: var(--color-tab-active);
 }
 
 .tab-icon {
-  font-size: 24px;
-  margin-bottom: var(--spacing-xs);
+  /* font-size is not needed as SVG has intrinsic size */
+  margin-bottom: 3px; /* Adjusted spacing */
+  line-height: 1; /* Ensure proper alignment of SVG */
+}
+
+.tab-icon svg {
+  width: 24px; /* Standard icon size */
+  height: 24px; /* Standard icon size */
+  stroke-width: 1.5; /* Slightly thinner stroke for a more refined look */
 }
 
 .tab-label {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 10px; /* Standard iOS tab label size */
+  font-weight: 500; /* Medium */
+  letter-spacing: -0.008em;
 }
 
 /* Form elements */
@@ -1385,10 +1508,11 @@ body {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
-  font-size: 16px;
+  font-size: 17px; /* Standard text size */
   background: var(--color-surface);
   color: var(--color-text);
-  font-family: inherit;
+  font-family: var(--font-family-apple); /* Ensure form control font */
+  letter-spacing: -0.022em;
 }
 
 .form-control:focus {
@@ -1415,17 +1539,27 @@ body {
 }
 
 /* Animations and interactions */
-.btn:active {
-  transform: scale(0.95);
+/* .btn:active is already defined with more specificity */
+
+.exercise-card {
+  /* ... existing styles ... */
+  transition: transform 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
+  will-change: transform, box-shadow;
 }
 
 .exercise-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-3px); /* Slightly more lift */
   box-shadow: var(--shadow-elevated);
 }
 
+.tab-item {
+  /* ... existing styles ... */
+  transition: color 0.2s var(--ease-standard), transform 0.1s ease-out;
+  will-change: color, transform;
+}
+
 .tab-item:active {
-  transform: scale(0.95);
+  transform: scale(0.92); /* Slightly more pronounced active state for tabs */
 }
 
 /* Accessibility */
