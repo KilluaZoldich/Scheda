@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FitTracker Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007AFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FitTracker">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9IiMwMDdBRkYiLz4KPHN2ZyB4PSI0NSIgeT0iNDUiIHdpZHRoPSI5MCIgaGVpZ2h0PSI5MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIyIDEySDJNMTIgMmwtMTAgMTBMMTIgMjJsIDEwLTEwTDEyIDJ6IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4KPC9zdmc+">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRml0VHJhY2tlciBQcm8iLCJzaG9ydF9uYW1lIjoiRml0VHJhY2tlciIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjRkZGRkZGIiwidGhlbWVfY29sb3IiOiIjMDA3QUZGIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UZ3dJaUJvWldsbmFIUTlJakU0TUNJaWRtbGxkMEp2ZUQwaU1DQXdJREU0TUNBeE9EQWlJR1pwYkd3OUltNXZibVVpSUhodGJHNXpQU0pvZEhSd09pOHZkM2QzTG5jekxtOXlaeTh5TURBd0wzTjJaeUkrQ2p4eVpXTjBJSGRwWkhSb1BTSXhPREFpSUdobGFXZG9kRDBpTVRnd0lpQnllRDBpTkRBaUlHWnBiR3c5SWlNd01EZEJSa1lpTHo0S1BITjJaeUI0UFNJME5TSWdlVDBpTkRVaUlIZHBaSFJvUFNJNU1DSWdhR1ZwWjJoMFBTSTVNQ0lnZG1sbGQwSnZlRDBpTUNBd0lESTBJREkwSWlCbWFXeHNQU0p1YjI1bElqNEtQSEJoZEdnZ1pEMGlUVEl5SURFeUlFZ3lUVEV5SURFK2JDMHhNQ0F4TUV3eE1pQXlNbXdnTVRBdE1UQk1NVElnTW5wdElpQnpkSEp2YTJVOUluZG9hWFJsSWlCemRISnZhMlV0ZDJsa2RHZzlJaklpSUhOMGNtOXJaUzFzYVc1bFkyRndQU0p5YjNWdVpDSWdjM1J5YjJ0bExXeHBibVZxYjJsdVBTSnliM1Z1WkNJdlBnbzhMM04yWno0S1BDOW1kbWMrIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjE4MHgxODAifV19">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">FitTracker</h1>
+                <div class="header-date" id="currentDate"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Section -->
+            <section id="home-section" class="section active">
+                <div class="welcome-card">
+                    <h2 class="welcome-title">Buongiorno! 💪</h2>
+                    <p class="welcome-subtitle">Pronto per l'allenamento di oggi?</p>
+                </div>
+
+                <div class="next-workout-card">
+                    <div class="card-header">
+                        <h3>Prossimo Allenamento</h3>
+                        <span class="workout-day" id="nextWorkoutDay">Giorno 1</span>
+                    </div>
+                    <div class="workout-preview" id="workoutPreview">
+                        <h4>Upper Body - Forza/Ipertrofia</h4>
+                        <p>6 esercizi • Focus multiarticolari</p>
+                    </div>
+                    <button class="btn btn--primary start-workout-btn" onclick="startWorkout()">
+                        Inizia Allenamento
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="streakDays">0</div>
+                        <div class="stat-label">Giorni Consecutivi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalWorkouts">0</div>
+                        <div class="stat-label">Allenamenti</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="thisWeek">0</div>
+                        <div class="stat-label">Questa Settimana</div>
+                    </div>
+                </div>
+
+                <div class="quote-card">
+                    <p class="daily-quote">"Il successo non è definitivo, il fallimento non è fatale: è il coraggio di continuare che conta."</p>
+                </div>
+            </section>
+
+            <!-- Workout Section -->
+            <section id="workout-section" class="section">
+                <div class="workout-header">
+                    <div class="workout-info">
+                        <h2 id="workoutTitle">Upper Body - Forza</h2>
+                        <p id="workoutFocus">Esercizi multiarticolari pesanti</p>
+                    </div>
+                    <div class="workout-controls">
+                        <select id="daySelector" class="form-control day-selector">
+                            <option value="day1">Giorno 1</option>
+                            <option value="day2">Giorno 2</option>
+                            <option value="day4">Giorno 4</option>
+                            <option value="day5">Giorno 5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="exercises-list" id="exercisesList">
+                    <!-- Exercises will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Timer Section -->
+            <section id="timer-section" class="section">
+                <div class="timer-container">
+                    <div class="timer-display">
+                        <div class="timer-circle">
+                            <svg class="timer-progress" width="200" height="200">
+                                <circle cx="100" cy="100" r="90" class="timer-track"></circle>
+                                <circle cx="100" cy="100" r="90" class="timer-fill" id="timerCircle"></circle>
+                            </svg>
+                            <div class="timer-time" id="timerTime">00:00</div>
+                        </div>
+                    </div>
+
+                    <div class="timer-controls">
+                        <button class="btn btn--secondary" id="timerPlayPause">
+                            <span class="timer-icon">⏵</span>
+                        </button>
+                        <button class="btn btn--outline" id="timerReset">Reset</button>
+                    </div>
+
+                    <div class="timer-presets">
+                        <h3>Preset Rapidi</h3>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" data-time="60">1:00</button>
+                            <button class="preset-btn" data-time="75">1:15</button>
+                            <button class="preset-btn" data-time="90">1:30</button>
+                            <button class="preset-btn" data-time="120">2:00</button>
+                        </div>
+                    </div>
+
+                    <div class="custom-timer">
+                        <h3>Timer Personalizzato</h3>
+                        <div class="time-input">
+                            <input type="number" id="customMinutes" min="0" max="59" value="1" class="form-control time-field">
+                            <span>:</span>
+                            <input type="number" id="customSeconds" min="0" max="59" value="30" class="form-control time-field">
+                        </div>
+                        <button class="btn btn--primary" id="setCustomTimer">Imposta Timer</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Section -->
+            <section id="progress-section" class="section">
+                <div class="progress-header">
+                    <h2>I Tuoi Progressi</h2>
+                </div>
+
+                <div class="progress-stats">
+                    <div class="progress-card">
+                        <h3>Questa Settimana</h3>
+                        <div class="week-calendar" id="weekCalendar">
+                            <!-- Week calendar will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="progress-card">
+                        <h3>Statistiche Generali</h3>
+                        <div class="stats-list">
+                            <div class="stat-item">
+                                <span>Totale Allenamenti:</span>
+                                <span id="totalWorkoutsProgress">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Streak Attuale:</span>
+                                <span id="currentStreakProgress">0 giorni</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Miglior Streak:</span>
+                                <span id="bestStreakProgress">0 giorni</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="progress-card">
+                        <h3>Carichi Utilizzati</h3>
+                        <div class="recent-weights" id="recentWeights">
+                            <p class="no-data">Inizia ad allenarti per vedere i tuoi progressi!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guide Section -->
+            <section id="guide-section" class="section">
+                <div class="guide-header">
+                    <h2>Guida & Consigli</h2>
+                </div>
+
+                <div class="guide-content">
+                    <div class="guide-card">
+                        <h3>Scala RPE (Rate of Perceived Exertion)</h3>
+                        <div class="rpe-scale">
+                            <div class="rpe-item">
+                                <div class="rpe-number rpe-10">10</div>
+                                <div class="rpe-description">
+                                    <strong>Sforzo Massimale</strong>
+                                    <p>Cedimento muscolare completo</p>
+                                </div>
+                            </div>
+                            <div class="rpe-item">
+                                <div class="rpe-number rpe-9">9</div>
+                                <div class="rpe-description">
+                                    <strong>Molto Intenso</strong>
+                                    <p>Solo 1 ripetizione in più possibile</p>
+                                </div>
+                            </div>
+                            <div class="rpe-item">
+                                <div class="rpe-number rpe-8">8</div>
+                                <div class="rpe-description">
+                                    <strong>Intenso</strong>
+                                    <p>Altre 2 ripetizioni possibili</p>
+                                </div>
+                            </div>
+                            <div class="rpe-item">
+                                <div class="rpe-number rpe-7">7</div>
+                                <div class="rpe-description">
+                                    <strong>Moderato-Intenso</strong>
+                                    <p>Altre 3 ripetizioni possibili</p>
+                                </div>
+                            </div>
+                            <div class="rpe-item">
+                                <div class="rpe-number rpe-6">6</div>
+                                <div class="rpe-description">
+                                    <strong>Moderato</strong>
+                                    <p>Sforzo controllato</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="guide-card">
+                        <h3>5 Consigli Fondamentali</h3>
+                        <div class="tips-list">
+                            <div class="tip-item">
+                                <div class="tip-number">1</div>
+                                <div class="tip-content">
+                                    <h4>Sovraccarico Progressivo</h4>
+                                    <p>Migliora ogni sessione aumentando carico, ripetizioni, serie o riducendo i tempi di riposo</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <div class="tip-number">2</div>
+                                <div class="tip-content">
+                                    <h4>Alimentazione</h4>
+                                    <p>Dieta ipercalorica con 1.6-2.2g di proteine per kg di peso corporeo</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <div class="tip-number">3</div>
+                                <div class="tip-content">
+                                    <h4>Riposo</h4>
+                                    <p>7-8 ore di sonno per riparazione e crescita muscolare</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <div class="tip-number">4</div>
+                                <div class="tip-content">
+                                    <h4>Riscaldamento</h4>
+                                    <p>5-10 minuti generali + serie di avvicinamento con carichi leggeri</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <div class="tip-number">5</div>
+                                <div class="tip-content">
+                                    <h4>Tecnica</h4>
+                                    <p>Tecnica corretta è più importante del carico sollevato</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <button class="tab-item active" data-section="home">
+                <div class="tab-icon">🏠</div>
+                <div class="tab-label">Home</div>
+            </button>
+            <button class="tab-item" data-section="workout">
+                <div class="tab-icon">💪</div>
+                <div class="tab-label">Allenamento</div>
+            </button>
+            <button class="tab-item" data-section="timer">
+                <div class="tab-icon">⏱️</div>
+                <div class="tab-label">Timer</div>
+            </button>
+            <button class="tab-item" data-section="progress">
+                <div class="tab-icon">📊</div>
+                <div class="tab-label">Progressi</div>
+            </button>
+            <button class="tab-item" data-section="guide">
+                <div class="tab-icon">ℹ️</div>
+                <div class="tab-label">Guida</div>
+            </button>
+        </nav>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
