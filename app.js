@@ -327,8 +327,8 @@ class FitTracker {
     saveSetDataOnInput(day, exerciseIndex, setIndex) {
         if (!this.sessionData.active) return; // Only save if session is active
         const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
-        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
-        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, null); // null for completed status as it's just an input change
+        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`); // Get the reps input element
+        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, null); // Pass repsInput.value
     }
 
     toggleSetComplete(day, exerciseIndex, setIndex) {
