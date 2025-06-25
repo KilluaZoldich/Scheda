@@ -79,6 +79,7 @@ class FitTracker {
         this.renderWorkout();
         this.renderProgress();
         this.setupTimer();
+        this.setupSWListener(); // Initialize SW listener
     }
 
     updateCurrentDate() {
@@ -462,6 +463,60 @@ class FitTracker {
         // alert('Allenamento terminato e salvato!'); // Alert can be removed or made more subtle
     }
 
+    // --- Service Worker Communication for Timer ---
+    postMessageToSW(message) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage(message);
+            console.log('[App] Sent message to SW:', message);
+        } else {
+            console.warn('[App] Service Worker not active or not controlling the page. Cannot send message:', message);
+        }
+    }
+
+    setupSWListener() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'TIMER_UPDATE') {
+                    console.log('[App] Received TIMER_UPDATE from SW:', event.data);
+                    // Only update app's timer if it's not the source of truth OR if it helps sync
+                    // For now, primarily focus on updating document.title
+                    if (document.visibilityState === 'visible') {
+                         // If timer is running in app, it's the source. If not, SW is.
+                        if (!this.timer.isRunning && event.data.remaining > 0) {
+                            // SW has an active timer, page timer was not running or desynced
+                            // This could happen if page was reloaded and SW had an ongoing timer
+                            this.timer.duration = event.data.duration || event.data.remaining; //
+                            this.timer.remaining = event.data.remaining;
+                            this.updateTimerDisplay();
+                            this.updateTimerCircle();
+                            // Potentially start the visual timer in the app if desired
+                        }
+                    }
+                    // Always update title if app is visible, or rely on SW notification if hidden
+                    const newTitle = event.data.remaining > 0 ?
+                                     `${this.formatTime(event.data.remaining)} - FitTracker` :
+                                     'FitTracker Pro';
+                    if (document.title !== newTitle) {
+                        document.title = newTitle;
+                    }
+                }
+            });
+            // On load, request current timer status from SW
+             if (navigator.serviceWorker.controller) {
+                this.postMessageToSW({ type: 'REQUEST_TIMER_STATUS' });
+            } else {
+                // Wait for SW to be ready if it's not controller yet (e.g. first load)
+                navigator.serviceWorker.ready.then(registration => {
+                    if (registration.active) {
+                         this.postMessageToSW({ type: 'REQUEST_TIMER_STATUS' });
+                    }
+                });
+            }
+        }
+    }
+    // Call setupSWListener in init
+    // this.setupSWListener(); // Will be called in init method
+
 
     toggleTimer() {
         if (this.timer.isRunning) {
@@ -472,41 +527,72 @@ class FitTracker {
     }
 
     startTimer() {
-        if (this.timer.remaining <= 0) return;
+        if (this.timer.remaining <= 0) { // If starting fresh, ensure duration is set
+            if(this.timer.duration <= 0) { // No preset/custom time was set
+                 // Default to 1 minute if no duration set, or handle error
+                // For now, let's assume setTimer was called before startTimer
+                if(this.timer.duration === 0 && document.getElementById('customMinutes') && document.getElementById('customSeconds')) {
+                    // Attempt to get from custom input if not set
+                    const minutes = parseInt(document.getElementById('customMinutes').value) || 0;
+                    const seconds = parseInt(document.getElementById('customSeconds').value) || 0;
+                    this.timer.duration = (minutes * 60) + seconds;
+                    this.timer.remaining = this.timer.duration;
+                }
+                if(this.timer.duration <= 0) return; // Still no valid duration
+            } else {
+                 this.timer.remaining = this.timer.duration; // Reset remaining to full duration
+            }
+        }
         
         this.timer.isRunning = true;
         document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏸</span>';
+        this.postMessageToSW({ type: 'START_TIMER', duration: this.timer.remaining }); // Use remaining as duration for SW
         
-        this.timer.interval = setInterval(() => {
+        // App's visual timer interval
+        if (this.timer.appInterval) clearInterval(this.timer.appInterval); // Clear existing if any
+        this.timer.appInterval = setInterval(() => {
             this.timer.remaining--;
-            this.updateTimerDisplay();
+            this.updateTimerDisplay(); // This will also update document.title if page is visible
             this.updateTimerCircle();
             
             if (this.timer.remaining <= 0) {
-                this.completeTimer();
+                this.completeTimer(true); // Pass true if completed by app timer
             }
         }, 1000);
     }
 
     pauseTimer() {
         this.timer.isRunning = false;
-        clearInterval(this.timer.interval);
+        if(this.timer.appInterval) clearInterval(this.timer.appInterval);
+        this.timer.appInterval = null;
         document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏵</span>';
+        this.postMessageToSW({ type: 'STOP_TIMER' });
+        // Update title to remove time when paused
+        document.title = 'FitTracker Pro';
     }
 
     resetTimer() {
-        this.pauseTimer();
+        this.pauseTimer(); // This will also send STOP_TIMER to SW
         this.timer.remaining = this.timer.duration;
         this.updateTimerDisplay();
         this.updateTimerCircle();
+        // No need to send START_TIMER to SW here, it will be sent if user presses play again
     }
 
-    completeTimer() {
-        this.pauseTimer();
+    completeTimer(isAppCompletion = false) {
+        if(this.timer.appInterval) clearInterval(this.timer.appInterval);
+        this.timer.appInterval = null;
+        this.timer.isRunning = false; // Ensure isRunning is false
         this.timer.remaining = 0;
-        this.updateTimerDisplay();
+
+        document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏵</span>';
+        this.updateTimerDisplay(); // Updates title to FitTracker Pro
         this.updateTimerCircle();
         
+        if (isAppCompletion) { // If app timer completed it, SW might still be running for a sec
+            this.postMessageToSW({ type: 'STOP_TIMER' }); // Ensure SW stops
+        }
+
         // Vibration feedback if supported
         if (navigator.vibrate) {
             navigator.vibrate([200, 100, 200]);
@@ -515,7 +601,11 @@ class FitTracker {
         // Audio feedback
         this.playNotificationSound();
         
-        alert('Timer completato! 🎉');
+        // The SW will show its own notification if app is not visible.
+        // If app is visible, this alert is fine, or could be a custom in-app notification.
+        if (document.visibilityState === 'visible') {
+            alert('Timer completato! 🎉');
+        }
     }
 
     updateTimerDisplay() {
@@ -832,41 +922,12 @@ const fitTracker = new FitTracker();
 // Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        const swCode = `
-            const CACHE_NAME = 'fittracker-v1';
-            const urlsToCache = [
-                '/',
-                '/index.html',
-                '/style.css',
-                '/app.js'
-            ];
-
-            self.addEventListener('install', (event) => {
-                event.waitUntil(
-                    caches.open(CACHE_NAME)
-                        .then((cache) => cache.addAll(urlsToCache))
-                );
-            });
-
-            self.addEventListener('fetch', (event) => {
-                event.respondWith(
-                    caches.match(event.request)
-                        .then((response) => {
-                            return response || fetch(event.request);
-                        })
-                );
-            });
-        `;
-        
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        
-        navigator.serviceWorker.register(swUrl)
+        navigator.serviceWorker.register('/sw.js') // Register the external sw.js file
             .then((registration) => {
-                console.log('SW registered: ', registration);
+                console.log('Service Worker registered successfully with scope:', registration.scope);
             })
             .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
+                console.log('Service Worker registration failed:', registrationError);
             });
     });
 }
