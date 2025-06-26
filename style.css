@@ -1098,6 +1098,33 @@ body {
     background-color: #c0152f; /* Darken error color */
 }
 
+.btn--danger-outline {
+    background: transparent;
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+}
+
+.btn--danger-outline:hover {
+    background-color: rgba(var(--color-error-rgb, 255, 59, 48), 0.1); /* Use RGB for alpha background */
+}
+
+.workout-day-management-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: space-between; /* Distribute buttons evenly */
+    margin-top: var(--spacing-sm); /* Space above buttons */
+}
+
+.workout-day-management-controls .btn svg {
+    margin-right: var(--spacing-xs);
+    vertical-align: middle; /* Migliora allineamento verticale */
+}
+
+.add-exercise-container .btn svg {
+    margin-right: var(--spacing-sm);
+    vertical-align: middle; /* Migliora allineamento verticale */
+}
+
 
 /* Exercise Cards */
 .exercise-card {
@@ -1114,12 +1141,13 @@ body {
 
 .exercise-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center; /* Align items center for better RPE tag alignment */
-  /* margin-bottom removed, using gap in .exercise-card now */
+  /* justify-content: space-between; /* Let items space out naturally or control with flex properties */
+  align-items: center;
+  gap: var(--spacing-sm); /* Add gap between items in header */
 }
 
 .exercise-name {
+  flex-grow: 1; /* Allow name to take up available space */
   font-size: 20px; /* Even larger for more prominence */
   font-weight: 700; /* Bold */
   margin: 0;
@@ -1138,7 +1166,26 @@ body {
   margin-left: var(--spacing-md); /* Increased margin */
   line-height: 1.2;
   white-space: nowrap; /* Prevent RPE tag from wrapping */
+  margin-left: 0; /* Remove fixed margin, rely on gap in header */
 }
+
+.exercise-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-left: auto; /* Push actions to the right */
+}
+
+.btn-edit-exercise, .btn-delete-exercise {
+    color: var(--color-text-secondary);
+}
+.btn-edit-exercise:hover, .btn-delete-exercise:hover {
+    color: var(--color-text);
+    background-color: var(--color-background); /* Slight hover effect */
+}
+.btn-delete-exercise:hover {
+    color: var(--color-error); /* Specific hover for delete */
+}
+
 
 /* RPE color theming is handled by --color-surface, --color-text-secondary, --color-border which adapt to light/dark mode */
 
@@ -1943,6 +1990,100 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+.add-exercise-container .btn svg {
+    margin-right: var(--spacing-sm);
+}
+
+/* Modal Styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 2000; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0,0,0,0.5); /* Black w/ opacity for backdrop */
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: var(--color-surface);
+  margin: auto;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-elevated);
+  position: relative;
+  animation: fadeInModal 0.3s var(--ease-standard);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.close-btn {
+  color: var(--color-text-secondary);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal h3 {
+    font-size: 22px;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text-secondary);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+@media (max-width: 420px) { /* Breakpoint per schermi più piccoli della modale */
+    .form-grid {
+        grid-template-columns: 1fr; /* Stack su una colonna */
+        gap: 0; /* Rimuovi gap tra righe se diventano stacked, il form-group ha già margin-bottom */
+    }
+    .modal-content { /* Riduci padding su schermi molto piccoli per dare più spazio al contenuto */
+        padding: var(--spacing-md);
+    }
+}
+
 
 /* PWA specific styles */
 @media (display-mode: standalone) {

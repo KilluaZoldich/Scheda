@@ -16,8 +16,7 @@ class FitTracker {
             exercises: {} // { exerciseIndex: { name: "...", sets: [ {weight:reps:completed}, ... ] } }
         };
         
-        // Workout data structure
-        this.workoutData = {
+        this.defaultWorkoutData = {
             "day1": {
                 "name": "Upper Body - Forza/Ipertrofia",
                 "focus": "Esercizi multiarticolari pesanti",
@@ -42,7 +41,7 @@ class FitTracker {
                     {"name": "Plank", "sets": 3, "reps": "Max secondi", "rest": 60, "rpe": "10", "notes": "Contrai addome e glutei"}
                 ]
             },
-            "day4": {
+            "day4": { // Mantengo day4 e day5 come da originale, ma la logica CRUD permetterà di modificarli
                 "name": "Upper Body - Ipertrofia/Metabolica",
                 "focus": "Volume e tempo sotto tensione",
                 "exercises": [
@@ -67,20 +66,127 @@ class FitTracker {
                 ]
             }
         };
+        this.workoutData = this.loadWorkoutData(); // Carica da localStorage o usa default
+        this.currentDay = Object.keys(this.workoutData)[0] || null; // Imposta il primo giorno come corrente
+
 
         this.init();
     }
 
+    // --- Data Persistence ---
+    /**
+     * Loads workout data (days and their exercises) from localStorage.
+     * If no data is found or data is invalid, returns a deep copy of defaultWorkoutData.
+     * @returns {object} The workout data.
+     */
+    loadWorkoutData() {
+        const storedData = localStorage.getItem('fitTrackerWorkoutData');
+        if (storedData) {
+            try {
+                const parsedData = JSON.parse(storedData);
+                if (typeof parsedData === 'object' && parsedData !== null && Object.keys(parsedData).length > 0) {
+                    // console.log("Loaded workout data from localStorage:", parsedData); // Debug
+                    return parsedData;
+                } else {
+                    console.warn("Invalid workout data in localStorage, using default.");
+                    return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+                }
+            } catch (error) {
+                console.error("Error parsing workout data from localStorage, using default:", error);
+                return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+            }
+        }
+        // console.log("No workout data in localStorage, using default."); // Debug
+        return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+    }
+
+    /**
+     * Saves the current state of this.workoutData to localStorage.
+     */
+    saveWorkoutData() {
+        try {
+            localStorage.setItem('fitTrackerWorkoutData', JSON.stringify(this.workoutData));
+            // console.log("Workout data saved to localStorage."); // Debug
+        } catch (error) {
+            console.error("Error saving workout data to localStorage:", error);
+        }
+    }
+
+    // --- Initialization and UI Setup ---
     init() {
         this.updateCurrentDate();
         this.setupEventListeners();
-        this.loadUserData();
+        this.loadUserData(); // Loads user stats like streak, total workouts, logs etc.
+        // this.workoutData is loaded in constructor
+        this.updateDaySelector(); // Populate daySelector based on loaded/default workoutData
         this.updateHomeStats();
+        // currentDay is set in constructor or after add/delete. renderWorkout uses it.
         this.renderWorkout();
         this.renderProgress();
         this.setupTimer();
         this.setupSWListener(); // Initialize SW listener
     }
+
+    updateDaySelector() {
+        const daySelector = document.getElementById('daySelector');
+        daySelector.innerHTML = ''; // Clear existing options
+
+        const dayIds = Object.keys(this.workoutData);
+
+        if (dayIds.length === 0) {
+            // Handle case with no workout days
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "Nessun giorno";
+            daySelector.appendChild(option);
+            daySelector.disabled = true;
+            // Disable management buttons if no days
+            document.getElementById('btnEditDay').disabled = true;
+            document.getElementById('btnDeleteDay').disabled = true;
+            return;
+        } else {
+            daySelector.disabled = false;
+            document.getElementById('btnEditDay').disabled = false;
+            document.getElementById('btnDeleteDay').disabled = false;
+        }
+
+        dayIds.forEach(dayId => {
+            const dayData = this.workoutData[dayId];
+            const option = document.createElement('option');
+            option.value = dayId;
+            // Use the 'name' for display, fallback to dayId if name is missing (should not happen with new structure)
+            option.textContent = dayData.name || dayId.replace('day', 'Giorno ');
+            daySelector.appendChild(option);
+        });
+
+        // Set the selected option based on this.currentDay
+        if (this.currentDay && this.workoutData[this.currentDay]) {
+            daySelector.value = this.currentDay;
+        } else if (dayIds.length > 0) {
+            // If currentDay is invalid or null, select the first available day
+            this.currentDay = dayIds[0];
+            daySelector.value = this.currentDay;
+        } else {
+            this.currentDay = null; // No days available
+        }
+
+        // After updating selector, if a valid day is selected, render its workout details
+        if (this.currentDay) {
+            this.renderWorkoutHeader(); // Update title/focus specifically
+        }
+    }
+
+    renderWorkoutHeader() { // New function to specifically update header info
+        if (this.currentDay && this.workoutData[this.currentDay]) {
+            const workout = this.workoutData[this.currentDay];
+            document.getElementById('workoutTitle').textContent = workout.name;
+            document.getElementById('workoutFocus').textContent = workout.focus || "";
+        } else {
+            document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
+            document.getElementById('workoutFocus').textContent = "Seleziona o aggiungi un giorno.";
+        }
+    }
+
 
     updateCurrentDate() {
         const now = new Date();
@@ -144,7 +250,271 @@ class FitTracker {
         // Workout session buttons
         document.getElementById('startWorkoutSessionBtn').addEventListener('click', () => this.startWorkoutSession());
         document.getElementById('endWorkoutSessionBtn').addEventListener('click', () => this.endWorkoutSession());
+
+        // Day Management Modal Listeners
+        document.getElementById('btnAddNewDay').addEventListener('click', () => this.openDayEditor());
+        document.getElementById('btnEditDay').addEventListener('click', () => this.openDayEditor(true));
+        document.getElementById('btnDeleteDay').addEventListener('click', () => this.deleteWorkoutDay(this.currentDay));
+        document.getElementById('closeDayEditorModal').addEventListener('click', () => this.closeDayEditor());
+        document.getElementById('cancelDayEditor').addEventListener('click', () => this.closeDayEditor());
+        document.getElementById('dayEditorForm').addEventListener('submit', (e) => this.handleDayEditorSubmit(e));
+
+        // Exercise Management Listeners
+        document.getElementById('btnAddNewExercise').addEventListener('click', () => this.openExerciseEditor(this.currentDay));
+        document.getElementById('closeExerciseEditorModal').addEventListener('click', () => this.closeExerciseEditor());
+        document.getElementById('cancelExerciseEditor').addEventListener('click', () => this.closeExerciseEditor());
+        document.getElementById('exerciseEditorForm').addEventListener('submit', (e) => this.handleExerciseEditorSubmit(e));
     }
+
+    // --- Day (Workout Schedule) CRUD and Modal Logic ---
+    /**
+     * Opens the modal for adding a new workout day or editing an existing one.
+     * @param {boolean} isEditMode - True if editing an existing day, false for new.
+     */
+    openDayEditor(isEditMode = false) {
+        const modal = document.getElementById('dayEditorModal');
+        const title = document.getElementById('dayEditorTitle');
+        const form = document.getElementById('dayEditorForm');
+        const dayNameInput = document.getElementById('dayNameInput');
+        const dayFocusInput = document.getElementById('dayFocusInput');
+        const editingDayIdInput = document.getElementById('editingDayId');
+
+        if (isEditMode) {
+            if (!this.currentDay || !this.workoutData[this.currentDay]) {
+                alert("Seleziona un giorno da modificare.");
+                return;
+            }
+            title.textContent = "Modifica Giorno";
+            const currentDayData = this.workoutData[this.currentDay];
+            dayNameInput.value = currentDayData.name;
+            dayFocusInput.value = currentDayData.focus || '';
+            editingDayIdInput.value = this.currentDay;
+        } else {
+            title.textContent = "Nuovo Giorno";
+            form.reset(); // Clear form fields
+            editingDayIdInput.value = ''; // No ID when adding new
+        }
+        modal.style.display = 'flex'; // Use flex to center it as per new CSS
+    }
+
+    closeDayEditor() {
+        document.getElementById('dayEditorModal').style.display = 'none';
+        document.getElementById('dayEditorForm').reset();
+    }
+
+    handleDayEditorSubmit(event) {
+        event.preventDefault();
+        const dayName = document.getElementById('dayNameInput').value.trim();
+        const dayFocus = document.getElementById('dayFocusInput').value.trim();
+        const editingDayId = document.getElementById('editingDayId').value;
+
+        if (!dayName) {
+            alert("Il nome del giorno è obbligatorio.");
+            return;
+        }
+
+        if (editingDayId) {
+            // Logic to edit day (will be implemented in next step)
+            console.log(`Editing day: ${editingDayId} to Name: ${dayName}, Focus: ${dayFocus}`);
+            // this.editWorkoutDay(editingDayId, dayName, dayFocus);
+        } else {
+            // Logic to add new day (will be implemented in next step)
+            console.log(`Adding new day - Name: ${dayName}, Focus: ${dayFocus}`);
+            this.editWorkoutDay(editingDayId, dayName, dayFocus);
+        } else {
+            this.addWorkoutDay(dayName, dayFocus);
+        }
+        this.closeDayEditor();
+    }
+
+    // --- Exercise CRUD and Modal Logic ---
+    /**
+     * Opens the modal for adding a new exercise to a day or editing an existing one.
+     * @param {string} dayId - The ID of the day to add/edit the exercise for.
+     * @param {number | null} exerciseIndex - The index of the exercise to edit, or null for a new exercise.
+     */
+    openExerciseEditor(dayId, exerciseIndex = null) {
+        if (!dayId || !this.workoutData[dayId]) {
+            alert("Seleziona o crea prima un giorno di allenamento valido.");
+            return;
+        }
+
+        const modal = document.getElementById('exerciseEditorModal');
+        const title = document.getElementById('exerciseEditorTitle');
+        const form = document.getElementById('exerciseEditorForm');
+        document.getElementById('editingExerciseDayId').value = dayId;
+
+        if (exerciseIndex !== null && this.workoutData[dayId].exercises[exerciseIndex]) {
+            title.textContent = "Modifica Esercizio";
+            const exercise = this.workoutData[dayId].exercises[exerciseIndex];
+            document.getElementById('exNameInput').value = exercise.name;
+            document.getElementById('exSetsInput').value = exercise.sets;
+            document.getElementById('exRepsInput').value = exercise.reps;
+            document.getElementById('exRestInput').value = exercise.rest;
+            document.getElementById('exRpeInput').value = exercise.rpe;
+            document.getElementById('exNotesInput').value = exercise.notes || '';
+            document.getElementById('editingExerciseIndex').value = exerciseIndex;
+        } else {
+            title.textContent = "Aggiungi Nuovo Esercizio";
+            form.reset(); // Clear form for new exercise
+            document.getElementById('editingExerciseIndex').value = ''; // Clear editing index
+        }
+        modal.style.display = 'flex';
+    }
+
+    closeExerciseEditor() {
+        document.getElementById('exerciseEditorModal').style.display = 'none';
+        document.getElementById('exerciseEditorForm').reset();
+    }
+
+    handleExerciseEditorSubmit(event) {
+        event.preventDefault();
+        const dayId = document.getElementById('editingExerciseDayId').value;
+        const exerciseIndex = document.getElementById('editingExerciseIndex').value;
+
+        const exerciseData = {
+            name: document.getElementById('exNameInput').value.trim(),
+            sets: parseInt(document.getElementById('exSetsInput').value) || 3,
+            reps: document.getElementById('exRepsInput').value.trim() || '8-12',
+            rest: parseInt(document.getElementById('exRestInput').value) || 60,
+            rpe: document.getElementById('exRpeInput').value.trim() || '8',
+            notes: document.getElementById('exNotesInput').value.trim()
+        };
+
+        if (!exerciseData.name) {
+            alert("Il nome dell'esercizio è obbligatorio.");
+            return;
+        }
+
+        if (exerciseIndex !== '') {
+            this.updateExercise(dayId, parseInt(exerciseIndex), exerciseData);
+        } else {
+            this.addExercise(dayId, exerciseData);
+        }
+        this.closeExerciseEditor();
+    }
+
+    addExercise(dayId, exerciseData) {
+        if (!this.workoutData[dayId]) {
+            console.error(`Day ID ${dayId} not found for adding exercise.`);
+            return;
+        }
+        if (!this.workoutData[dayId].exercises) {
+            this.workoutData[dayId].exercises = []; // Initialize if undefined
+        }
+        this.workoutData[dayId].exercises.push(exerciseData);
+        this.saveWorkoutData();
+        this.renderWorkout(); // Re-render the current day's workout to show the new exercise
+        console.log(`Added new exercise to day ${dayId}:`, exerciseData);
+    }
+
+    updateExercise(dayId, exerciseIndex, newExerciseData) {
+        if (!this.workoutData[dayId] || !this.workoutData[dayId].exercises[exerciseIndex]) {
+            console.error(`Exercise at index ${exerciseIndex} for day ID ${dayId} not found.`);
+            return;
+        }
+        this.workoutData[dayId].exercises[exerciseIndex] = newExerciseData;
+        this.saveWorkoutData();
+        this.renderWorkout(); // Re-render to show updated exercise
+        console.log(`Updated exercise ${exerciseIndex} in day ${dayId}:`, newExerciseData);
+    }
+
+    deleteExercise(dayId, exerciseIndex) {
+        if (!this.workoutData[dayId] || !this.workoutData[dayId].exercises[exerciseIndex]) {
+            console.error(`Exercise at index ${exerciseIndex} for day ID ${dayId} not found for deletion.`);
+            return;
+        }
+
+        const exerciseName = this.workoutData[dayId].exercises[exerciseIndex].name;
+        if (!confirm(`Sei sicuro di voler eliminare l'esercizio "${exerciseName}"?`)) {
+            return;
+        }
+
+        this.workoutData[dayId].exercises.splice(exerciseIndex, 1);
+        this.saveWorkoutData();
+        this.renderWorkout(); // Re-render the workout list
+        console.log(`Deleted exercise ${exerciseIndex} from day ${dayId}`);
+    }
+
+
+    addWorkoutDay(name, focus) {
+        // Find the next available day number if current IDs are like "dayX"
+        let nextDayNum = 1;
+        const dayKeys = Object.keys(this.workoutData);
+        while (dayKeys.includes(`day${nextDayNum}`)) {
+            nextDayNum++;
+        }
+        const newDayId = `day${nextDayNum}`;
+
+        this.workoutData[newDayId] = {
+            name: name,
+            focus: focus || "", // Ensure focus is at least an empty string
+            exercises: []
+        };
+        this.saveWorkoutData();
+        this.currentDay = newDayId; // Select the new day
+        this.updateDaySelector(); // Update the <select>
+        this.renderWorkout(); // Re-render the workout section for the new day
+        console.log(`Added new day: ${newDayId} - ${name}`);
+    }
+
+    editWorkoutDay(dayId, newName, newFocus) {
+        if (!this.workoutData[dayId]) {
+            console.error(`Day ID ${dayId} not found for editing.`);
+            return;
+        }
+        this.workoutData[dayId].name = newName;
+        this.workoutData[dayId].focus = newFocus || "";
+        this.saveWorkoutData();
+        this.updateDaySelector(); // Update display names in selector if needed
+
+        // If the edited day is the current day, re-render its header
+        if (this.currentDay === dayId) {
+            document.getElementById('workoutTitle').textContent = newName;
+            document.getElementById('workoutFocus').textContent = newFocus || "";
+            // No need to call renderWorkout() fully unless exercises changed,
+            // but if name/focus in selector text needs update, updateDaySelector handles it.
+        }
+        console.log(`Edited day: ${dayId} to ${newName}`);
+    }
+
+    deleteWorkoutDay(dayId) {
+        if (!dayId || !this.workoutData[dayId]) {
+            alert("Nessun giorno selezionato o giorno non valido per l'eliminazione.");
+            console.error(`Day ID ${dayId} not found for deletion.`);
+            return;
+        }
+
+        // Confirmation dialog
+        if (!confirm(`Sei sicuro di voler eliminare il giorno "${this.workoutData[dayId].name}" e tutti i suoi esercizi?`)) {
+            return;
+        }
+
+        delete this.workoutData[dayId];
+        this.saveWorkoutData();
+
+        // Determine next currentDay
+        const remainingDayIds = Object.keys(this.workoutData);
+        if (this.currentDay === dayId) { // If the deleted day was the current one
+            this.currentDay = remainingDayIds.length > 0 ? remainingDayIds[0] : null;
+        }
+
+        this.updateDaySelector(); // Update the <select>
+        this.renderWorkout(); // Re-render the workout section
+
+        console.log(`Deleted day: ${dayId}`);
+        if (!this.currentDay) {
+            // Handle UI for no days existing, e.g. clear workout display
+            document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
+            document.getElementById('workoutFocus').textContent = "Aggiungi un nuovo giorno di allenamento.";
+            document.getElementById('exercisesList').innerHTML = '<p class="no-data">Nessun esercizio. Aggiungi un giorno di allenamento.</p>';
+            document.getElementById('addExerciseContainer').style.display = 'none'; // Hide "Add Exercise" button if no day is selected
+        } else {
+            // Ensure "Add Exercise" button is visible if a day is selected (its content will be handled by renderWorkout)
+            document.getElementById('addExerciseContainer').style.display = 'block';
+        }
+    }
+
 
     switchSection(sectionName) {
         // Update active section
@@ -170,17 +540,29 @@ class FitTracker {
         document.getElementById('workoutTitle').textContent = workout.name;
         document.getElementById('workoutFocus').textContent = workout.focus;
 
-        // Update day selector
-        document.getElementById('daySelector').value = this.currentDay;
+        // Update day selector - value is set by updateDaySelector or change event
+        // document.getElementById('daySelector').value = this.currentDay; // This is now handled by updateDaySelector
+
+        // Render workout header (title, focus) - now handled by renderWorkoutHeader, called by updateDaySelector or on day change
+        this.renderWorkoutHeader();
 
         // Render exercises
         const exercisesList = document.getElementById('exercisesList');
-        exercisesList.innerHTML = '';
+        exercisesList.innerHTML = ''; // Clear previous exercises
 
-        workout.exercises.forEach((exercise, index) => {
-            const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive); // Pass isSessionActive
-            exercisesList.appendChild(exerciseCard);
-        });
+        if (workout.exercises && workout.exercises.length > 0) {
+            workout.exercises.forEach((exercise, index) => {
+                const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive); // Pass isSessionActive
+                exercisesList.appendChild(exerciseCard);
+            });
+            // Ensure "Add exercise" button container is visible if it was hidden
+            document.getElementById('addExerciseContainer').style.display = 'block';
+        } else {
+            exercisesList.innerHTML = '<p class="no-data">Nessun esercizio in questo giorno. Aggiungine uno!</p>';
+            // Still show "Add exercise" button even if list is empty
+            document.getElementById('addExerciseContainer').style.display = 'block';
+        }
+
 
         // Show/hide exercise controls (add set, timer button) based on session state
         document.querySelectorAll('.exercise-controls').forEach(controls => {
@@ -203,6 +585,14 @@ class FitTracker {
         card.innerHTML = `
             <div class="exercise-header">
                 <h3 class="exercise-name">${exercise.name}</h3>
+                <div class="exercise-actions">
+                    <button class="btn-icon btn-edit-exercise" onclick="fitTracker.openExerciseEditor('${this.currentDay}', ${index})" aria-label="Modifica Esercizio">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    </button>
+                    <button class="btn-icon btn-delete-exercise" onclick="fitTracker.deleteExercise('${this.currentDay}', ${index})" aria-label="Elimina Esercizio">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
                 <div class="exercise-rpe">RPE ${exercise.rpe}</div>
             </div>
             
@@ -372,7 +762,7 @@ class FitTracker {
             currentSetData.completed = completedStatus;
         }
 
-        console.log("Session data updated:", JSON.parse(JSON.stringify(this.sessionData))); // Deep copy for logging
+        // console.log("Session data updated:", JSON.parse(JSON.stringify(this.sessionData))); // Debug, deep copy for logging
     }
 
 
