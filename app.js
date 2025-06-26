@@ -1319,6 +1319,8 @@ if ('serviceWorker' in navigator) {
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FitTracker;
-}
+}; // Added semicolon
+
+// Ensure there's a newline at the end of the file
 
 [end of app.js]
