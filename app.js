@@ -314,12 +314,6 @@ class FitTracker {
         }
 
         if (editingDayId) {
-            // Logic to edit day (will be implemented in next step)
-            console.log(`Editing day: ${editingDayId} to Name: ${dayName}, Focus: ${dayFocus}`);
-            // this.editWorkoutDay(editingDayId, dayName, dayFocus);
-        } else {
-            // Logic to add new day (will be implemented in next step)
-            console.log(`Adding new day - Name: ${dayName}, Focus: ${dayFocus}`);
             this.editWorkoutDay(editingDayId, dayName, dayFocus);
         } else {
             this.addWorkoutDay(dayName, dayFocus);
@@ -1326,3 +1320,5 @@ if ('serviceWorker' in navigator) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FitTracker;
 }
+
+[end of app.js]
