@@ -939,9 +939,55 @@ body {
 }
 
 /* Workout Section */
-.workout-header {
+.workout-header-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
+  padding-top: var(--spacing-sm); /* Add some space at the top of the section */
 }
+
+.day-selector-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.day-selector-container label { /* For .sr-only */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.day-selector-container .day-selector {
+  flex-grow: 1; /* Allow selector to take available space */
+}
+
+.day-management-buttons {
+  display: grid; /* Use grid for even distribution */
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.day-management-buttons .btn {
+  display: flex; /* Align icon and text */
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm); /* Smaller padding for these buttons */
+  font-size: 13px; /* Smaller font */
+}
+.day-management-buttons .btn svg {
+  margin-right: 4px; /* Space between icon and text */
+  width: 14px; /* Smaller icons */
+  height: 14px;
+}
+
 
 .workout-info h2 {
   font-size: 24px;
@@ -959,98 +1005,122 @@ body {
   width: 100%;
 }
 
-/* Exercise Cards */
-.exercise-card {
+/* Exercise Cards v2 (Nuovo Design) */
+.exercise-card-v2 { /* Rinominato per evitare conflitti con la vecchia card durante la transizione */
   background: var(--color-surface);
   border-radius: var(--radius-card);
-  padding: var(--spacing-md);
+  padding: var(--spacing-md); /* Un po' meno padding della card generica per compattezza */
   margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm); /* Spazio tra header, dettagli, note, controlli set */
 }
 
-.exercise-header {
+.exercise-card-v2 .exercise-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-sm);
-}
-
-.exercise-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  flex: 1;
-}
-
-.exercise-rpe {
-  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-small);
-  font-size: 12px;
-  font-weight: 600;
-  margin-left: var(--spacing-sm);
-}
-
-.exercise-details {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
 }
 
-.detail-item {
-  text-align: center;
+.exercise-card-v2 .exercise-name {
+  font-size: 18px; /* Leggermente più piccolo del titolo workout, ma prominente */
+  font-weight: 600; /* Semibold */
+  color: var(--color-text);
+  letter-spacing: -0.023em;
+  flex-grow: 1; /* Occupa spazio disponibile */
 }
 
-.detail-label {
-  font-size: 12px;
+.exercise-card-v2 .exercise-actions .btn-icon {
+  width: 28px; /* Bottoni icona più piccoli */
+  height: 28px;
+  color: var(--color-text-secondary);
+}
+.exercise-card-v2 .exercise-actions .btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.exercise-card-v2 .exercise-actions .btn-icon:hover {
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+.exercise-card-v2 .exercise-actions .btn-delete-exercise:hover {
+    color: var(--color-error);
+}
+
+
+.exercise-card-v2 .exercise-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); /* Colonne flessibili */
+  gap: var(--spacing-sm); /* Spazio tra gli item */
+  padding: var(--spacing-xs) 0; /* Leggero padding verticale */
+}
+
+.exercise-card-v2 .detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Allinea a sinistra per un look più pulito */
+}
+
+.exercise-card-v2 .detail-label {
+  font-size: 11px; /* Etichetta più piccola */
   color: var(--color-text-secondary);
   font-weight: 500;
-  margin-bottom: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
 }
 
-.detail-value {
-  font-size: 16px;
-  font-weight: 600;
+.exercise-card-v2 .detail-value {
+  font-size: 14px; /* Valore più compatto */
+  font-weight: 500; /* Medium weight */
   color: var(--color-text);
 }
+.exercise-card-v2 .detail-value .detail-icon { /* Per icone accanto ai valori */
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    vertical-align: middle;
+    color: var(--color-text-secondary);
+}
 
-.exercise-notes {
-  font-size: 14px;
+
+.exercise-card-v2 .exercise-notes {
+  font-size: 13px;
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-md);
   font-style: italic;
+  padding: var(--spacing-xs) 0;
+  border-top: 1px solid var(--color-border); /* Separatore leggero se ci sono note */
+  margin-top: var(--spacing-xs);
+}
+.exercise-card-v2 .exercise-notes:empty { /* Nascondi se vuoto */
+    display: none;
 }
 
-.exercise-controls {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
+/* Stili per .exercise-sets-tracking e .set-tracker-item (già definiti, verificare coerenza) */
+/* Assicurarsi che .exercise-controls (per Aggiungi Set, Timer Riposo Esercizio) siano stilizzati e posizionati bene */
+.exercise-card-v2 .exercise-controls {
+    display: flex; /* Saranno mostrati/nascosti da JS durante la sessione */
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    /* border-top: 1px solid var(--color-border); */ /* Opzionale: separatore */
+    /* padding-top: var(--spacing-sm); */ /* Opzionale: spazio sopra */
+}
+.exercise-card-v2 .exercise-controls .btn {
+    flex-grow: 1; /* Fa sì che i bottoni si espandano se sono pochi */
 }
 
-.weight-input {
-  flex: 1;
-  min-width: 80px;
-  padding: var(--spacing-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  font-size: 14px;
-  background: var(--color-background);
+
+.add-exercise-container { /* Contenitore per "Aggiungi Esercizio a questa Scheda" */
+    /* margin-top: var(--spacing-lg); è inline, può essere spostato qui */
+}
+.add-exercise-container .btn svg {
+    margin-right: var(--spacing-sm); /* Già definito, ma confermo */
+    vertical-align: middle;
 }
 
-.timer-btn {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-small);
-  padding: var(--spacing-sm);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  min-width: 60px;
-}
 
 /* Timer Section */
 .timer-container {

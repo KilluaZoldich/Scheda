@@ -2,16 +2,22 @@
 class FitTracker {
     constructor() {
         this.currentSection = 'home';
-        this.currentDay = 'day1';
+        this.currentDay = 'day1'; // Sarà sovrascritto da loadWorkoutData se ci sono dati
         this.timer = {
             duration: 0,
             remaining: 0,
             isRunning: false,
-            interval: null
+            interval: null,
+            appInterval: null // Aggiunto per gestire l'intervallo dell'app separatamente
+        };
+        this.sessionData = {
+            active: false,
+            currentDay: null,
+            startTime: null,
+            exercises: {}
         };
         
-        // Workout data structure
-        this.workoutData = {
+        this.defaultWorkoutData = {
             "day1": {
                 "name": "Upper Body - Forza/Ipertrofia",
                 "focus": "Esercizi multiarticolari pesanti",
@@ -61,19 +67,125 @@ class FitTracker {
                 ]
             }
         };
+        this.workoutData = this.loadWorkoutData();
+        this.currentDay = Object.keys(this.workoutData)[0] || null;
+
 
         this.init();
     }
 
+    // --- Data Persistence ---
+    /**
+     * Loads workout data (days and their exercises) from localStorage.
+     * If no data is found or data is invalid, returns a deep copy of defaultWorkoutData.
+     * @returns {object} The workout data.
+     */
+    loadWorkoutData() {
+        const storedData = localStorage.getItem('fitTrackerWorkoutData');
+        if (storedData) {
+            try {
+                const parsedData = JSON.parse(storedData);
+                if (typeof parsedData === 'object' && parsedData !== null && Object.keys(parsedData).length > 0) {
+                    return parsedData;
+                } else {
+                    console.warn("Invalid workout data in localStorage, using default.");
+                    return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+                }
+            } catch (error) {
+                console.error("Error parsing workout data from localStorage, using default:", error);
+                return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+            }
+        }
+        return JSON.parse(JSON.stringify(this.defaultWorkoutData));
+    }
+
+    /**
+     * Saves the current state of this.workoutData to localStorage.
+     */
+    saveWorkoutData() {
+        try {
+            localStorage.setItem('fitTrackerWorkoutData', JSON.stringify(this.workoutData));
+        } catch (error) {
+            console.error("Error saving workout data to localStorage:", error);
+        }
+    }
+
+    // --- Initialization and UI Setup ---
     init() {
         this.updateCurrentDate();
         this.setupEventListeners();
         this.loadUserData();
+        this.updateDaySelector();
         this.updateHomeStats();
         this.renderWorkout();
         this.renderProgress();
         this.setupTimer();
+        this.setupSWListener();
     }
+
+    updateDaySelector() {
+        const daySelector = document.getElementById('daySelector');
+        daySelector.innerHTML = '';
+
+        const dayIds = Object.keys(this.workoutData);
+
+        if (dayIds.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "Nessun giorno";
+            daySelector.appendChild(option);
+            daySelector.disabled = true;
+            document.getElementById('btnEditDay').disabled = true;
+            document.getElementById('btnDeleteDay').disabled = true;
+            document.getElementById('btnAddNewExerciseToDay').disabled = true; // Disable add exercise if no day
+             document.getElementById('startWorkoutSessionBtn').disabled = true;
+            this.currentDay = null; // Ensure currentDay is null
+        } else {
+            daySelector.disabled = false;
+            document.getElementById('btnEditDay').disabled = false;
+            document.getElementById('btnDeleteDay').disabled = false;
+            document.getElementById('btnAddNewExerciseToDay').disabled = false;
+            document.getElementById('startWorkoutSessionBtn').disabled = false;
+
+            dayIds.forEach(dayId => {
+                const dayData = this.workoutData[dayId];
+                const option = document.createElement('option');
+                option.value = dayId;
+                option.textContent = dayData.name || dayId.replace('day', 'Giorno ');
+                daySelector.appendChild(option);
+            });
+
+            if (this.currentDay && this.workoutData[this.currentDay]) {
+                daySelector.value = this.currentDay;
+            } else {
+                this.currentDay = dayIds[0];
+                daySelector.value = this.currentDay;
+            }
+        }
+
+        if (this.currentDay) {
+            this.renderWorkoutHeader();
+        } else {
+             // If no current day after update (e.g. all days deleted)
+            document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
+            document.getElementById('workoutFocus').textContent = "Aggiungi un nuovo giorno di allenamento.";
+            document.getElementById('exercisesList').innerHTML = '<p class="no-data">Nessun esercizio. Aggiungi un giorno di allenamento.</p>';
+            const addExerciseContainer = document.getElementById('addExerciseContainer');
+            if(addExerciseContainer) addExerciseContainer.style.display = 'none';
+        }
+    }
+
+    renderWorkoutHeader() {
+        if (this.currentDay && this.workoutData[this.currentDay]) {
+            const workout = this.workoutData[this.currentDay];
+            document.getElementById('workoutTitle').textContent = workout.name;
+            document.getElementById('workoutFocus').textContent = workout.focus || "";
+        } else {
+            document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
+            document.getElementById('workoutFocus').textContent = "Seleziona o aggiungi un giorno.";
+        }
+    }
+
 
     updateCurrentDate() {
         const now = new Date();
@@ -99,7 +211,8 @@ class FitTracker {
         // Day selector
         document.getElementById('daySelector').addEventListener('change', (e) => {
             this.currentDay = e.target.value;
-            this.renderWorkout();
+            this.renderWorkout(); // Re-render workout when day changes
+            this.updateWorkoutPreview(); // Update home page preview
         });
 
         // Timer controls
@@ -129,20 +242,274 @@ class FitTracker {
             }
         });
 
-        // Start workout button
+        // Start workout button (Home page)
         window.startWorkout = () => {
             this.switchSection('workout');
         };
+
+        // Workout session buttons
+        document.getElementById('startWorkoutSessionBtn').addEventListener('click', () => this.startWorkoutSession());
+        document.getElementById('endWorkoutSessionBtn').addEventListener('click', () => this.endWorkoutSession());
+
+        // Day Management Modal Listeners
+        document.getElementById('btnAddNewDay').addEventListener('click', () => this.openDayEditor());
+        document.getElementById('btnEditDay').addEventListener('click', () => this.openDayEditor(true));
+        document.getElementById('btnDeleteDay').addEventListener('click', () => this.deleteWorkoutDay(this.currentDay));
+        document.getElementById('closeDayEditorModal').addEventListener('click', () => this.closeDayEditor());
+        document.getElementById('cancelDayEditor').addEventListener('click', () => this.closeDayEditor());
+        document.getElementById('dayEditorForm').addEventListener('submit', (e) => this.handleDayEditorSubmit(e));
+
+        // Exercise Management Listeners
+        document.getElementById('btnAddNewExerciseToDay').addEventListener('click', () => this.openExerciseEditor(this.currentDay)); // Corrected ID
+        document.getElementById('closeExerciseEditorModal').addEventListener('click', () => this.closeExerciseEditor());
+        document.getElementById('cancelExerciseEditor').addEventListener('click', () => this.closeExerciseEditor());
+        document.getElementById('exerciseEditorForm').addEventListener('submit', (e) => this.handleExerciseEditorSubmit(e));
     }
 
+    // --- Day (Workout Schedule) CRUD and Modal Logic ---
+    /**
+     * Opens the modal for adding a new workout day or editing an existing one.
+     * @param {boolean} isEditMode - True if editing an existing day, false for new.
+     */
+    openDayEditor(isEditMode = false) {
+        const modal = document.getElementById('dayEditorModal');
+        const title = document.getElementById('dayEditorTitle');
+        const form = document.getElementById('dayEditorForm');
+        const dayNameInput = document.getElementById('dayNameInput');
+        const dayFocusInput = document.getElementById('dayFocusInput');
+        const editingDayIdInput = document.getElementById('editingDayId');
+
+        if (isEditMode) {
+            if (!this.currentDay || !this.workoutData[this.currentDay]) {
+                alert("Seleziona un giorno da modificare.");
+                return;
+            }
+            title.textContent = "Modifica Giorno";
+            const currentDayData = this.workoutData[this.currentDay];
+            dayNameInput.value = currentDayData.name;
+            dayFocusInput.value = currentDayData.focus || '';
+            editingDayIdInput.value = this.currentDay;
+        } else {
+            title.textContent = "Nuovo Giorno";
+            form.reset();
+            editingDayIdInput.value = '';
+        }
+        modal.style.display = 'flex';
+    }
+
+    closeDayEditor() {
+        document.getElementById('dayEditorModal').style.display = 'none';
+        document.getElementById('dayEditorForm').reset();
+    }
+
+    handleDayEditorSubmit(event) {
+        event.preventDefault();
+        const dayName = document.getElementById('dayNameInput').value.trim();
+        const dayFocus = document.getElementById('dayFocusInput').value.trim();
+        const editingDayId = document.getElementById('editingDayId').value;
+
+        if (!dayName) {
+            alert("Il nome del giorno è obbligatorio.");
+            return;
+        }
+
+        if (editingDayId) {
+            this.editWorkoutDay(editingDayId, dayName, dayFocus);
+        } else {
+            this.addWorkoutDay(dayName, dayFocus);
+        }
+        this.closeDayEditor();
+    }
+
+    // --- Exercise CRUD and Modal Logic ---
+    /**
+     * Opens the modal for adding a new exercise to a day or editing an existing one.
+     * @param {string} dayId - The ID of the day to add/edit the exercise for.
+     * @param {number | null} exerciseIndex - The index of the exercise to edit, or null for a new exercise.
+     */
+    openExerciseEditor(dayId, exerciseIndex = null) {
+        if (!dayId || !this.workoutData[dayId]) {
+            alert("Seleziona o crea prima un giorno di allenamento valido.");
+            const addExerciseContainer = document.getElementById('addExerciseContainer');
+            if(addExerciseContainer) addExerciseContainer.style.display = 'none'; // Hide if no valid day
+            return;
+        }
+        // Ensure "Add Exercise" button is visible if we are here because a valid dayId was passed
+        const addExerciseContainer = document.getElementById('addExerciseContainer');
+        if(addExerciseContainer) addExerciseContainer.style.display = 'block';
+
+
+        const modal = document.getElementById('exerciseEditorModal');
+        const title = document.getElementById('exerciseEditorTitle');
+        const form = document.getElementById('exerciseEditorForm');
+        document.getElementById('editingExerciseDayId').value = dayId;
+
+        if (exerciseIndex !== null && this.workoutData[dayId].exercises[exerciseIndex]) {
+            title.textContent = "Modifica Esercizio";
+            const exercise = this.workoutData[dayId].exercises[exerciseIndex];
+            document.getElementById('exNameInput').value = exercise.name;
+            document.getElementById('exSetsInput').value = exercise.sets;
+            document.getElementById('exRepsInput').value = exercise.reps;
+            document.getElementById('exRestInput').value = exercise.rest;
+            document.getElementById('exRpeInput').value = exercise.rpe;
+            document.getElementById('exNotesInput').value = exercise.notes || '';
+            document.getElementById('editingExerciseIndex').value = exerciseIndex;
+        } else {
+            title.textContent = "Aggiungi Nuovo Esercizio";
+            form.reset();
+            document.getElementById('editingExerciseIndex').value = '';
+        }
+        modal.style.display = 'flex';
+    }
+
+    closeExerciseEditor() {
+        document.getElementById('exerciseEditorModal').style.display = 'none';
+        document.getElementById('exerciseEditorForm').reset();
+    }
+
+    handleExerciseEditorSubmit(event) {
+        event.preventDefault();
+        const dayId = document.getElementById('editingExerciseDayId').value;
+        const exerciseIndex = document.getElementById('editingExerciseIndex').value;
+
+        const exerciseData = {
+            name: document.getElementById('exNameInput').value.trim(),
+            sets: parseInt(document.getElementById('exSetsInput').value) || 3,
+            reps: document.getElementById('exRepsInput').value.trim() || '8-12',
+            rest: parseInt(document.getElementById('exRestInput').value) || 60,
+            rpe: document.getElementById('exRpeInput').value.trim() || '8',
+            notes: document.getElementById('exNotesInput').value.trim()
+        };
+
+        if (!exerciseData.name) {
+            alert("Il nome dell'esercizio è obbligatorio.");
+            return;
+        }
+
+        if (exerciseIndex !== '') {
+            this.updateExercise(dayId, parseInt(exerciseIndex), exerciseData);
+        } else {
+            this.addExercise(dayId, exerciseData);
+        }
+        this.closeExerciseEditor();
+    }
+
+    addExercise(dayId, exerciseData) {
+        if (!this.workoutData[dayId]) {
+            console.error(`Day ID ${dayId} not found for adding exercise.`);
+            return;
+        }
+        if (!this.workoutData[dayId].exercises) {
+            this.workoutData[dayId].exercises = [];
+        }
+        this.workoutData[dayId].exercises.push(exerciseData);
+        this.saveWorkoutData();
+        this.renderWorkout(this.sessionData.active);
+        console.log(`Added new exercise to day ${dayId}:`, exerciseData);
+    }
+
+    updateExercise(dayId, exerciseIndex, newExerciseData) {
+        if (!this.workoutData[dayId] || !this.workoutData[dayId].exercises[exerciseIndex]) {
+            console.error(`Exercise at index ${exerciseIndex} for day ID ${dayId} not found.`);
+            return;
+        }
+        this.workoutData[dayId].exercises[exerciseIndex] = newExerciseData;
+        this.saveWorkoutData();
+        this.renderWorkout(this.sessionData.active);
+        console.log(`Updated exercise ${exerciseIndex} in day ${dayId}:`, newExerciseData);
+    }
+
+    deleteExercise(dayId, exerciseIndex) {
+        if (!this.workoutData[dayId] || !this.workoutData[dayId].exercises[exerciseIndex]) {
+            console.error(`Exercise at index ${exerciseIndex} for day ID ${dayId} not found for deletion.`);
+            return;
+        }
+
+        const exerciseName = this.workoutData[dayId].exercises[exerciseIndex].name;
+        if (!confirm(`Sei sicuro di voler eliminare l'esercizio "${exerciseName}"?`)) {
+            return;
+        }
+
+        this.workoutData[dayId].exercises.splice(exerciseIndex, 1);
+        this.saveWorkoutData();
+        this.renderWorkout(this.sessionData.active);
+        console.log(`Deleted exercise ${exerciseIndex} from day ${dayId}`);
+    }
+
+
+    addWorkoutDay(name, focus) {
+        let nextDayNum = 1;
+        const dayKeys = Object.keys(this.workoutData);
+        while (dayKeys.includes(`day${nextDayNum}`)) {
+            nextDayNum++;
+        }
+        const newDayId = `day${nextDayNum}`;
+
+        this.workoutData[newDayId] = {
+            name: name,
+            focus: focus || "",
+            exercises: []
+        };
+        this.saveWorkoutData();
+        this.currentDay = newDayId;
+        this.updateDaySelector();
+        this.renderWorkout(this.sessionData.active);
+        console.log(`Added new day: ${newDayId} - ${name}`);
+    }
+
+    editWorkoutDay(dayId, newName, newFocus) {
+        if (!this.workoutData[dayId]) {
+            console.error(`Day ID ${dayId} not found for editing.`);
+            return;
+        }
+        this.workoutData[dayId].name = newName;
+        this.workoutData[dayId].focus = newFocus || "";
+        this.saveWorkoutData();
+        this.updateDaySelector();
+
+        if (this.currentDay === dayId) {
+            this.renderWorkoutHeader();
+        }
+        console.log(`Edited day: ${dayId} to ${newName}`);
+    }
+
+    deleteWorkoutDay(dayId) {
+        if (!dayId || !this.workoutData[dayId]) {
+            alert("Nessun giorno selezionato o giorno non valido per l'eliminazione.");
+            console.error(`Day ID ${dayId} not found for deletion.`);
+            return;
+        }
+
+        if (!confirm(`Sei sicuro di voler eliminare il giorno "${this.workoutData[dayId].name}" e tutti i suoi esercizi?`)) {
+            return;
+        }
+
+        delete this.workoutData[dayId];
+        this.saveWorkoutData();
+
+        const remainingDayIds = Object.keys(this.workoutData);
+        if (this.currentDay === dayId) {
+            this.currentDay = remainingDayIds.length > 0 ? remainingDayIds[0] : null;
+        }
+
+        this.updateDaySelector();
+        this.renderWorkout(this.sessionData.active);
+
+        console.log(`Deleted day: ${dayId}`);
+         if (!this.currentDay) {
+            document.getElementById('addExerciseContainer').style.display = 'none';
+        } else {
+            document.getElementById('addExerciseContainer').style.display = 'block';
+        }
+    }
+
+
     switchSection(sectionName) {
-        // Update active section
         document.querySelectorAll('.section').forEach(section => {
             section.classList.remove('active');
         });
         document.getElementById(`${sectionName}-section`).classList.add('active');
 
-        // Update active tab
         document.querySelectorAll('.tab-item').forEach(tab => {
             tab.classList.remove('active');
         });
@@ -151,79 +518,225 @@ class FitTracker {
         this.currentSection = sectionName;
     }
 
-    renderWorkout() {
+    renderWorkout(isSessionActive = false) {
+        const addExerciseContainer = document.getElementById('addExerciseContainer');
+
+        if (!this.currentDay || !this.workoutData[this.currentDay]) {
+            document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
+            document.getElementById('workoutFocus').textContent = "Aggiungi o seleziona un giorno.";
+            document.getElementById('exercisesList').innerHTML = '<p class="no-data">Nessun giorno selezionato.</p>';
+            if(addExerciseContainer) addExerciseContainer.style.display = 'none';
+             document.getElementById('startWorkoutSessionBtn').disabled = true;
+            return;
+        }
+
+        document.getElementById('startWorkoutSessionBtn').disabled = false;
+        if(addExerciseContainer) addExerciseContainer.style.display = isSessionActive ? 'none' : 'block';
+
+
         const workout = this.workoutData[this.currentDay];
-        if (!workout) return;
+        // this.renderWorkoutHeader() è già chiamato da updateDaySelector o dal change del selector
+        // Non serve chiamarlo di nuovo qui a meno che il nome/focus del giorno non cambi DENTRO renderWorkout,
+        // il che non accade.
+        // Se `daySelector` è gestito correttamente, `this.currentDay` sarà sempre valido se ci sono giorni.
 
-        // Update workout header
-        document.getElementById('workoutTitle').textContent = workout.name;
-        document.getElementById('workoutFocus').textContent = workout.focus;
-
-        // Update day selector
-        document.getElementById('daySelector').value = this.currentDay;
-
-        // Render exercises
         const exercisesList = document.getElementById('exercisesList');
         exercisesList.innerHTML = '';
 
-        workout.exercises.forEach((exercise, index) => {
-            const exerciseCard = this.createExerciseCard(exercise, index);
-            exercisesList.appendChild(exerciseCard);
+        if (workout.exercises && workout.exercises.length > 0) {
+            workout.exercises.forEach((exercise, index) => {
+                const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive);
+                exercisesList.appendChild(exerciseCard);
+            });
+        } else {
+            exercisesList.innerHTML = '<p class="no-data">Nessun esercizio in questo giorno. Aggiungine uno!</p>';
+        }
+
+        document.querySelectorAll('.exercise-controls').forEach(controls => {
+            controls.style.display = isSessionActive ? 'flex' : 'none';
         });
 
-        // Update home preview
         this.updateWorkoutPreview();
     }
 
-    createExerciseCard(exercise, index) {
+    createExerciseCard(exercise, index, isSessionActive) {
         const card = document.createElement('div');
-        card.className = 'exercise-card';
+        card.className = 'exercise-card-v2';
         
+        const sessionExerciseData = (this.sessionData && this.sessionData.active && this.sessionData.exercises && this.sessionData.exercises[index])
+                                    ? this.sessionData.exercises[index].sets
+                                    : [];
+
         card.innerHTML = `
             <div class="exercise-header">
                 <h3 class="exercise-name">${exercise.name}</h3>
-                <div class="exercise-rpe">RPE ${exercise.rpe}</div>
-            </div>
-            
-            <div class="exercise-details">
-                <div class="detail-item">
-                    <div class="detail-label">Serie</div>
-                    <div class="detail-value">${exercise.sets}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Ripetizioni</div>
-                    <div class="detail-value">${exercise.reps}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Riposo</div>
-                    <div class="detail-value">${this.formatTime(exercise.rest)}</div>
+                <div class="exercise-actions">
+                    <button class="btn-icon btn-edit-exercise" onclick="fitTracker.openExerciseEditor('${this.currentDay}', ${index})" aria-label="Modifica Esercizio" ${isSessionActive ? 'disabled' : ''}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    </button>
+                    <button class="btn-icon btn-delete-exercise" onclick="fitTracker.deleteExercise('${this.currentDay}', ${index})" aria-label="Elimina Esercizio" ${isSessionActive ? 'disabled' : ''}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
                 </div>
             </div>
             
-            <div class="exercise-notes">${exercise.notes}</div>
+            <div class="exercise-details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Serie</span>
+                    <span class="detail-value" id="sets-planned-${this.currentDay}-${index}">${exercise.sets}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ripetizioni</span>
+                    <span class="detail-value" id="reps-planned-${this.currentDay}-${index}">${exercise.reps}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Riposo</span>
+                    <span class="detail-value">
+                        <svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ${this.formatTime(exercise.rest)}
+                    </span>
+                </div>
+                 <div class="detail-item">
+                    <span class="detail-label">RPE</span>
+                    <span class="detail-value">${exercise.rpe || '-'}</span>
+                </div>
+            </div>
             
-            <div class="exercise-controls">
-                <input type="number" class="weight-input" placeholder="Peso (kg)"
-                       id="weight-${this.currentDay}-${index}" min="0" step="0.5">
-                <button class="timer-btn" onclick="fitTracker.startRestTimer(${exercise.rest})">
-                    Timer
+            ${exercise.notes ? `<div class="exercise-notes">${exercise.notes}</div>` : ''}
+            
+            <div class="exercise-sets-tracking" id="sets-tracking-${this.currentDay}-${index}" style="display: ${isSessionActive ? 'flex' : 'none'}; flex-direction: column; gap: var(--spacing-xs);">
+                ${this.renderSetTrackers(exercise, index, isSessionActive, sessionExerciseData)}
+            </div>
+
+            <div class="exercise-controls" style="display: ${isSessionActive ? 'flex' : 'none'};">
+                <button class="btn btn--secondary btn--sm" onclick="fitTracker.addSet('${this.currentDay}', ${index})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Aggiungi Set
                 </button>
+                // Il bottone timer riposo per esercizio intero è stato rimosso perché ora il tracciamento è per set.
+                // Se necessario, un timer di riposo può essere avviato dopo aver completato un set.
             </div>
         `;
-
-        // Load saved weight
-        const savedWeight = this.getUserData(`weight-${this.currentDay}-${index}`);
-        if (savedWeight) {
-            card.querySelector('.weight-input').value = savedWeight;
-        }
-
-        // Save weight on input
-        card.querySelector('.weight-input').addEventListener('input', (e) => {
-            this.saveUserData(`weight-${this.currentDay}-${index}`, e.target.value);
-        });
-
         return card;
     }
+
+    renderSetTrackers(exercise, exerciseIndex, isSessionActive = false, sessionSets = []) {
+        let html = '';
+        const numPlannedSets = parseInt(exercise.sets) || 0;
+        const numActualSets = sessionSets.length;
+        const numSetsToRender = Math.max(numPlannedSets, numActualSets);
+
+        for (let i = 0; i < numSetsToRender; i++) {
+            const setData = sessionSets[i] || {};
+            const weightValue = setData.weight || '';
+            const repsValue = setData.reps || '';
+            const isCompleted = setData.completed || false;
+
+            html += `
+                <div class="set-tracker-item ${isCompleted ? 'completed' : ''}" id="set-${this.currentDay}-${exerciseIndex}-${i}">
+                    <span class="set-number">Set ${i + 1}</span>
+                    <div class="weight-input-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                        <input type="number" class="weight-input set-weight-input" placeholder="Peso" value="${weightValue}"
+                               id="weight-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="0.25" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
+                        <span class="weight-unit">kg</span>
+                    </div>
+                    <div class="reps-input-wrapper">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+                        <input type="number" class="reps-input set-reps-input" placeholder="Reps" value="${repsValue}"
+                               id="reps-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="1" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
+                    </div>
+                    <button class="btn-icon set-complete-btn" onclick="fitTracker.toggleSetComplete('${this.currentDay}', ${exerciseIndex}, ${i})" aria-label="Completa set" ${!isSessionActive ? 'disabled' : ''}>
+                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg class="circle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                    </button>
+                </div>
+            `;
+        }
+        return html;
+    }
+
+    addSet(day, exerciseIndex) {
+        console.log(`Adding set for ${day}, exercise ${exerciseIndex}`);
+        const exercise = this.workoutData[day].exercises[exerciseIndex];
+        const setsContainer = document.getElementById(`sets-tracking-${day}-${exerciseIndex}`);
+        const currentSetCount = setsContainer.children.length;
+
+        // Aggiorna il numero di serie nell'oggetto exercise.sets in workoutData
+        // Questo è importante se vogliamo che il numero di serie "pianificate" si aggiorni
+        // Tuttavia, questo modifica la scheda originale. Alternativamente, si potrebbe gestire
+        // il numero di set effettivi solo in sessionData. Per ora, modifico workoutData.
+        exercise.sets = currentSetCount + 1;
+        this.saveWorkoutData(); // Salva la modifica al numero di sets
+
+        // Aggiorna il display delle serie pianificate
+        const setsPlannedElement = document.getElementById(`sets-planned-${day}-${exerciseIndex}`);
+        if (setsPlannedElement) {
+            setsPlannedElement.textContent = exercise.sets;
+        }
+
+        // Aggiungi il nuovo set tracker alla UI
+        const newSetHtml = this.renderSetTrackers(exercise, exerciseIndex, true,
+            (this.sessionData.active && this.sessionData.exercises[exerciseIndex]) ? this.sessionData.exercises[exerciseIndex].sets : []
+        );
+        // Rirenderizza solo i set tracker per questo esercizio
+        setsContainer.innerHTML = newSetHtml;
+
+
+        // Abilita gli input per il nuovo set se la sessione è attiva
+        // Questo ora è gestito da renderSetTrackers che riceve isSessionActive
+    }
+
+    saveSetDataOnInput(day, exerciseIndex, setIndex) {
+        if (!this.sessionData.active) return;
+        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
+        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, null);
+    }
+
+    toggleSetComplete(day, exerciseIndex, setIndex) {
+        if (!this.sessionData.active) return;
+
+        const setItem = document.getElementById(`set-${day}-${exerciseIndex}-${setIndex}`);
+        const isCompleted = setItem.classList.toggle('completed');
+        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
+
+        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, isCompleted);
+
+        if (isCompleted) {
+            console.log(`Set ${setIndex + 1} for ${this.workoutData[day].exercises[exerciseIndex].name} completed with ${weightInput.value}kg for ${repsInput.value} reps.`);
+            // Avvia automaticamente il timer di riposo per l'esercizio corrente
+            const currentExercise = this.workoutData[day].exercises[exerciseIndex];
+            if (currentExercise && currentExercise.rest > 0) {
+                this.startRestTimer(currentExercise.rest);
+            }
+        }
+    }
+
+    saveSetData(day, exerciseIndex, setIndex, weight, reps, completedStatus) {
+        if (!this.sessionData) this.sessionData = { active: false, currentDay: null, startTime: null, exercises: {} };
+        if (!this.sessionData.exercises) this.sessionData.exercises = {};
+
+        const exerciseKey = exerciseIndex.toString();
+        if (!this.sessionData.exercises[exerciseKey]) {
+            this.sessionData.exercises[exerciseKey] = {
+                name: this.workoutData[day].exercises[exerciseIndex].name,
+                sets: []
+            };
+        }
+        while (this.sessionData.exercises[exerciseKey].sets.length <= setIndex) {
+            this.sessionData.exercises[exerciseKey].sets.push({ weight: '', reps: '', completed: false });
+        }
+
+        const currentSetData = this.sessionData.exercises[exerciseKey].sets[setIndex];
+        currentSetData.weight = weight !== undefined ? weight : currentSetData.weight;
+        currentSetData.reps = reps !== undefined ? reps : currentSetData.reps;
+        if (completedStatus !== null) {
+            currentSetData.completed = completedStatus;
+        }
+    }
+
 
     startRestTimer(seconds) {
         this.switchSection('timer');
@@ -243,6 +756,121 @@ class FitTracker {
         this.updateTimerCircle();
     }
 
+    startWorkoutSession() {
+        if (!this.currentDay || !this.workoutData[this.currentDay] || this.workoutData[this.currentDay].exercises.length === 0) {
+            alert("Nessun esercizio in questa scheda per iniziare l'allenamento. Aggiungi prima degli esercizi.");
+            return;
+        }
+        this.sessionData = {
+            active: true,
+            currentDay: this.currentDay,
+            startTime: new Date(),
+            exercises: {} // Inizializza vuoto, verrà popolato da saveSetData
+        };
+
+        document.getElementById('startWorkoutSessionBtn').style.display = 'none';
+        document.getElementById('endWorkoutSessionBtn').style.display = 'flex';
+        document.getElementById('daySelector').disabled = true;
+        document.getElementById('btnAddNewDay').disabled = true;
+        document.getElementById('btnEditDay').disabled = true;
+        document.getElementById('btnDeleteDay').disabled = true;
+        document.getElementById('btnAddNewExerciseToDay').style.display = 'none';
+
+
+        this.renderWorkout(true);
+        console.log("Workout session started for day:", this.currentDay);
+    }
+
+    endWorkoutSession() {
+        if (!this.sessionData.active) return;
+
+        const endTime = new Date();
+        const durationMs = endTime - (this.sessionData.startTime || endTime); // Fallback se startTime non fosse settato
+
+        console.log("Workout session ended. Duration:", durationMs, "Data:", this.sessionData);
+
+        this.userData.totalWorkouts = (this.userData.totalWorkouts || 0) + 1;
+
+        const today = new Date().toISOString().split('T')[0];
+        if (!this.userData.workoutDates.includes(today)) {
+            this.userData.workoutDates.push(today);
+        }
+        this.updateStreak();
+
+        if (!this.userData.workoutLogs) {
+            this.userData.workoutLogs = [];
+        }
+        this.userData.workoutLogs.push({
+            date: this.sessionData.startTime ? this.sessionData.startTime.toISOString().split('T')[0] : today, // Usa la data di inizio sessione
+            day: this.sessionData.currentDay,
+            workoutName: this.workoutData[this.sessionData.currentDay] ? this.workoutData[this.sessionData.currentDay].name : 'Allenamento Sconosciuto',
+            startTime: this.sessionData.startTime ? this.sessionData.startTime.toISOString() : null,
+            endTime: endTime.toISOString(),
+            durationMs: durationMs,
+            exercises: JSON.parse(JSON.stringify(this.sessionData.exercises)) // Deep copy
+        });
+
+
+        this.saveUserData();
+        this.updateHomeStats();
+        this.renderProgress();
+
+        this.sessionData = { active: false, currentDay: null, startTime: null, exercises: {} };
+        document.getElementById('startWorkoutSessionBtn').style.display = 'flex';
+        document.getElementById('endWorkoutSessionBtn').style.display = 'none';
+        document.getElementById('daySelector').disabled = false;
+        document.getElementById('btnAddNewDay').disabled = false;
+        document.getElementById('btnEditDay').disabled = false;
+        document.getElementById('btnDeleteDay').disabled = false;
+        document.getElementById('btnAddNewExerciseToDay').style.display = 'block';
+
+        this.renderWorkout(false);
+
+        this.switchSection('progress');
+    }
+
+    // --- Service Worker Communication for Timer ---
+    postMessageToSW(message) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage(message);
+        } else {
+            // console.warn('[App] Service Worker not active or not controlling the page. Cannot send message:', message);
+        }
+    }
+
+    setupSWListener() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'TIMER_UPDATE') {
+                    if (document.visibilityState === 'visible') {
+                        if (!this.timer.isRunning && event.data.remaining > 0) {
+                            this.timer.duration = event.data.duration || event.data.remaining;
+                            this.timer.remaining = event.data.remaining;
+                            this.updateTimerDisplay();
+                            this.updateTimerCircle();
+                        }
+                    }
+                    const newTitle = event.data.remaining > 0 ?
+                                     `${this.formatTime(event.data.remaining)} - FitTracker` :
+                                     'FitTracker Pro';
+                    if (document.title !== newTitle) {
+                        document.title = newTitle;
+                    }
+                }
+            });
+             if (navigator.serviceWorker.controller) {
+                this.postMessageToSW({ type: 'REQUEST_TIMER_STATUS' });
+            } else {
+                navigator.serviceWorker.ready.then(registration => {
+                    if (registration.active) {
+                         this.postMessageToSW({ type: 'REQUEST_TIMER_STATUS' });
+                    }
+                });
+            }
+        }
+    }
+
+
     toggleTimer() {
         if (this.timer.isRunning) {
             this.pauseTimer();
@@ -252,26 +880,43 @@ class FitTracker {
     }
 
     startTimer() {
-        if (this.timer.remaining <= 0) return;
+        if (this.timer.remaining <= 0) {
+            if(this.timer.duration <= 0) {
+                if(this.timer.duration === 0 && document.getElementById('customMinutes') && document.getElementById('customSeconds')) {
+                    const minutes = parseInt(document.getElementById('customMinutes').value) || 0;
+                    const seconds = parseInt(document.getElementById('customSeconds').value) || 0;
+                    this.timer.duration = (minutes * 60) + seconds;
+                    this.timer.remaining = this.timer.duration;
+                }
+                if(this.timer.duration <= 0) return;
+            } else {
+                 this.timer.remaining = this.timer.duration;
+            }
+        }
         
         this.timer.isRunning = true;
         document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏸</span>';
+        this.postMessageToSW({ type: 'START_TIMER', duration: this.timer.remaining });
         
-        this.timer.interval = setInterval(() => {
+        if (this.timer.appInterval) clearInterval(this.timer.appInterval);
+        this.timer.appInterval = setInterval(() => {
             this.timer.remaining--;
             this.updateTimerDisplay();
             this.updateTimerCircle();
             
             if (this.timer.remaining <= 0) {
-                this.completeTimer();
+                this.completeTimer(true);
             }
         }, 1000);
     }
 
     pauseTimer() {
         this.timer.isRunning = false;
-        clearInterval(this.timer.interval);
+        if(this.timer.appInterval) clearInterval(this.timer.appInterval);
+        this.timer.appInterval = null;
         document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏵</span>';
+        this.postMessageToSW({ type: 'STOP_TIMER' });
+        document.title = 'FitTracker Pro';
     }
 
     resetTimer() {
@@ -281,21 +926,29 @@ class FitTracker {
         this.updateTimerCircle();
     }
 
-    completeTimer() {
-        this.pauseTimer();
+    completeTimer(isAppCompletion = false) {
+        if(this.timer.appInterval) clearInterval(this.timer.appInterval);
+        this.timer.appInterval = null;
+        this.timer.isRunning = false;
         this.timer.remaining = 0;
+
+        document.getElementById('timerPlayPause').innerHTML = '<span class="timer-icon">⏵</span>';
         this.updateTimerDisplay();
         this.updateTimerCircle();
         
-        // Vibration feedback if supported
+        if (isAppCompletion) {
+            this.postMessageToSW({ type: 'STOP_TIMER' });
+        }
+
         if (navigator.vibrate) {
             navigator.vibrate([200, 100, 200]);
         }
         
-        // Audio feedback
         this.playNotificationSound();
         
-        alert('Timer completato! 🎉');
+        if (document.visibilityState === 'visible') {
+            // alert('Timer completato! 🎉'); // Commentato per evitare alert durante i test automatici
+        }
     }
 
     updateTimerDisplay() {
@@ -308,7 +961,7 @@ class FitTracker {
 
     updateTimerCircle() {
         const circle = document.getElementById('timerCircle');
-        const circumference = 2 * Math.PI * 90; // radius = 90
+        const circumference = 2 * Math.PI * 90;
         const progress = this.timer.duration > 0 ? 
             (this.timer.duration - this.timer.remaining) / this.timer.duration : 0;
         const offset = circumference - (progress * circumference);
@@ -316,7 +969,6 @@ class FitTracker {
     }
 
     playNotificationSound() {
-        // Create a simple beep sound using Web Audio API
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
@@ -335,34 +987,39 @@ class FitTracker {
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
         } catch (e) {
-            console.log('Audio not supported');
+            // console.log('Audio not supported');
         }
     }
 
     updateWorkoutPreview() {
+        if (!this.currentDay || !this.workoutData[this.currentDay]) {
+            document.getElementById('workoutPreview').innerHTML = `<h4>Nessun Giorno Selezionato</h4><p>Seleziona un giorno dall'area Allenamento.</p>`;
+            document.getElementById('nextWorkoutDay').textContent = 'N/A';
+            return;
+        };
         const workout = this.workoutData[this.currentDay];
-        if (!workout) return;
+        if (!workout) return; // Should be caught by above, but defensive
 
         document.getElementById('workoutPreview').innerHTML = `
             <h4>${workout.name}</h4>
             <p>${workout.exercises.length} esercizi • ${workout.focus}</p>
         `;
 
-        // Update next workout day display
-        const dayNumber = this.currentDay.replace('day', '');
-        document.getElementById('nextWorkoutDay').textContent = `Giorno ${dayNumber}`;
+        const dayKeyDisplay = this.currentDay.startsWith('day') ? `Giorno ${this.currentDay.replace('day','')}` : this.workoutData[this.currentDay].name;
+        document.getElementById('nextWorkoutDay').textContent = dayKeyDisplay;
     }
 
     loadUserData() {
         try {
-            const data = JSON.parse(localStorage.getItem('fitTracker') || '{}');
+            const data = JSON.parse(localStorage.getItem('fitTrackerUser') || '{}'); // Changed key for clarity
             this.userData = {
                 totalWorkouts: 0,
                 streakDays: 0,
                 bestStreak: 0,
                 lastWorkout: null,
-                workoutDates: [],
-                weights: {},
+                workoutDates: [], // Array of YYYY-MM-DD strings
+                workoutLogs: [], // Array of detailed workout session objects
+                // weights: {}, // Deprecated, individual exercise weights are in workoutLogs
                 ...data
             };
         } catch (e) {
@@ -372,52 +1029,46 @@ class FitTracker {
                 bestStreak: 0,
                 lastWorkout: null,
                 workoutDates: [],
-                weights: {}
+                workoutLogs: [],
             };
         }
     }
 
-    saveUserData(key, value) {
+    saveUserData() { // Removed key, value params as we save the whole object now
         if (!this.userData) this.loadUserData();
-        
-        if (key && value !== undefined) {
-            this.userData.weights = this.userData.weights || {};
-            this.userData.weights[key] = value;
-        }
-        
         try {
-            localStorage.setItem('fitTracker', JSON.stringify(this.userData));
+            localStorage.setItem('fitTrackerUser', JSON.stringify(this.userData));
         } catch (e) {
             console.error('Failed to save user data:', e);
         }
     }
 
-    getUserData(key) {
-        if (!this.userData) this.loadUserData();
-        return this.userData.weights ? this.userData.weights[key] : null;
-    }
+    // getUserData(key) no longer makes sense in this way if weights are per log
+    // If specific user settings were needed, a similar function could be used.
 
     updateHomeStats() {
         if (!this.userData) this.loadUserData();
         
-        document.getElementById('streakDays').textContent = this.userData.streakDays;
-        document.getElementById('totalWorkouts').textContent = this.userData.totalWorkouts;
+        document.getElementById('streakDays').textContent = this.userData.streakDays || 0;
+        document.getElementById('totalWorkouts').textContent = this.userData.totalWorkouts || 0;
         
-        // Calculate this week's workouts
         const thisWeek = this.getThisWeekWorkouts();
         document.getElementById('thisWeek').textContent = thisWeek;
     }
 
     getThisWeekWorkouts() {
-        if (!this.userData.workoutDates) return 0;
+        if (!this.userData.workoutDates || this.userData.workoutDates.length === 0) return 0;
         
         const now = new Date();
         const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
+        // Adjust to make Monday the start of the week (0=Sun, 1=Mon, ..., 6=Sat)
+        const dayOfWeek = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // if Sunday (0), go back 6 days. If Monday (1), go back 0. If Tuesday (2) go back 1.
+        startOfWeek.setDate(now.getDate() + diff);
         startOfWeek.setHours(0, 0, 0, 0);
         
         return this.userData.workoutDates.filter(dateStr => {
-            const date = new Date(dateStr);
+            const date = new Date(dateStr); // Assuming dateStr is YYYY-MM-DD
             return date >= startOfWeek;
         }).length;
     }
@@ -425,7 +1076,86 @@ class FitTracker {
     renderProgress() {
         this.renderWeekCalendar();
         this.updateProgressStats();
+        this.renderRecentWeights();
+        this.renderWorkoutLogHistory();
     }
+
+    renderRecentWeights() {
+        const recentWeightsContainer = document.getElementById('recentWeights');
+        if (!recentWeightsContainer) return;
+
+        const lastLog = this.userData.workoutLogs && this.userData.workoutLogs.length > 0
+                        ? this.userData.workoutLogs[this.userData.workoutLogs.length - 1]
+                        : null;
+
+        if (!lastLog || !lastLog.exercises || Object.keys(lastLog.exercises).length === 0) {
+            recentWeightsContainer.innerHTML = '<p class="no-data">Nessun dato dall\'ultimo allenamento.</p>';
+            return;
+        }
+
+        let html = '<ul class="stats-list">';
+        for (const exerciseId in lastLog.exercises) { // exerciseId is the index from the session
+            const exerciseLog = lastLog.exercises[exerciseId];
+            html += `<li class="stat-item"><span>${exerciseLog.name}</span></li>`; // Use logged name
+            if (exerciseLog.sets && exerciseLog.sets.length > 0) {
+                exerciseLog.sets.forEach((set, index) => {
+                    if (set.completed) {
+                        html += `<li class="log-set-item" style="padding-left: var(--spacing-lg);">Set ${index + 1}: ${set.weight || 'N/A'} kg x ${set.reps || 'N/A'} reps</li>`;
+                    }
+                });
+            }
+        }
+        html += '</ul>';
+        recentWeightsContainer.innerHTML = html;
+    }
+
+    renderWorkoutLogHistory() {
+        const historyContainer = document.getElementById('workoutLogHistory');
+        if (!historyContainer) return;
+
+        if (!this.userData.workoutLogs || this.userData.workoutLogs.length === 0) {
+            historyContainer.innerHTML = '<p class="no-data">Nessuno storico allenamenti trovato.</p>';
+            return;
+        }
+
+        let html = '';
+        const logsToShow = this.userData.workoutLogs.slice().reverse().slice(0, 20);
+
+        logsToShow.forEach(log => {
+            const logDate = new Date(log.date); // log.date should be YYYY-MM-DD string from startTime
+            const formattedDate = logDate.toLocaleDateString('it-IT', { year: 'numeric', month: 'short', day: 'numeric' });
+            // log.workoutName è stato aggiunto in endWorkoutSession
+            const workoutDisplayName = log.workoutName || `Allenamento del ${formattedDate}`;
+
+
+            html += `
+                <div class="log-entry">
+                    <div class="log-entry-header">
+                        <h4>${workoutDisplayName}</h4>
+                        <span class="date">${formattedDate}</span>
+                    </div>
+            `;
+            if (log.exercises && Object.keys(log.exercises).length > 0) {
+                for (const exerciseId in log.exercises) {
+                    const ex = log.exercises[exerciseId];
+                    html += `<div class="log-exercise-item"><strong>${ex.name}</strong>:`;
+                    if (ex.sets && ex.sets.length > 0) {
+                        ex.sets.forEach((set, index) => {
+                            if (set.completed) {
+                                html += `<div class="log-set-item">Set ${index + 1}: ${set.weight || 'N/A'} kg x ${set.reps || 'N/A'} reps</div>`;
+                            }
+                        });
+                    }
+                    html += `</div>`;
+                }
+            } else {
+                 html += `<p class="no-data" style="font-size:12px; margin-left:var(--spacing-md);">Nessun dettaglio esercizio registrato.</p>`;
+            }
+            html += `</div>`;
+        });
+        historyContainer.innerHTML = html;
+    }
+
 
     renderWeekCalendar() {
         const calendar = document.getElementById('weekCalendar');
@@ -433,9 +1163,12 @@ class FitTracker {
         
         const today = new Date();
         const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
+        const dayOfWeek = today.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        startOfWeek.setDate(today.getDate() + diff);
+        startOfWeek.setHours(0,0,0,0);
         
-        const days = ['D', 'L', 'M', 'M', 'G', 'V', 'S'];
+        const days = ['L', 'M', 'M', 'G', 'V', 'S', 'D']; // Start week with Monday
         calendar.innerHTML = '';
         
         for (let i = 0; i < 7; i++) {
@@ -446,8 +1179,10 @@ class FitTracker {
             dayItem.className = 'day-item';
             
             const isToday = date.toDateString() === today.toDateString();
+            // Format date to YYYY-MM-DD for comparison with workoutDates
+            const dateStringForComparison = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
             const hasWorkout = this.userData.workoutDates && 
-                this.userData.workoutDates.includes(date.toISOString().split('T')[0]);
+                this.userData.workoutDates.includes(dateStringForComparison);
             
             if (isToday) dayItem.classList.add('today');
             if (hasWorkout) dayItem.classList.add('completed');
@@ -464,9 +1199,9 @@ class FitTracker {
     updateProgressStats() {
         if (!this.userData) return;
         
-        document.getElementById('totalWorkoutsProgress').textContent = this.userData.totalWorkouts;
-        document.getElementById('currentStreakProgress').textContent = `${this.userData.streakDays} giorni`;
-        document.getElementById('bestStreakProgress').textContent = `${this.userData.bestStreak} giorni`;
+        document.getElementById('totalWorkoutsProgress').textContent = this.userData.totalWorkouts || 0;
+        document.getElementById('currentStreakProgress').textContent = `${this.userData.streakDays || 0} giorni`;
+        document.getElementById('bestStreakProgress').textContent = `${this.userData.bestStreak || 0} giorni`;
     }
 
     formatTime(seconds) {
@@ -478,17 +1213,19 @@ class FitTracker {
         return remainingSeconds === 0 ? `${minutes}'` : `${minutes}'${remainingSeconds}"`;
     }
 
+    // completeWorkout() is now effectively handled by endWorkoutSession()
+    // so this function can be removed or refactored if any unique logic remains.
+    // For now, commenting out as endWorkoutSession takes over its responsibilities.
+    /*
     completeWorkout() {
         if (!this.userData) this.loadUserData();
         
         const today = new Date().toISOString().split('T')[0];
         
-        // Add workout date if not already added
         if (!this.userData.workoutDates.includes(today)) {
             this.userData.workoutDates.push(today);
             this.userData.totalWorkouts++;
             
-            // Update streak
             this.updateStreak();
         }
         
@@ -497,42 +1234,45 @@ class FitTracker {
         this.updateHomeStats();
         this.renderProgress();
     }
+    */
 
     updateStreak() {
-        if (!this.userData.workoutDates.length) return;
+        if (!this.userData.workoutDates || this.userData.workoutDates.length === 0) {
+            this.userData.streakDays = 0;
+            return;
+        };
         
         const dates = this.userData.workoutDates
-            .map(d => new Date(d))
-            .sort((a, b) => b - a);
+            .map(d => new Date(d)) // Assumes dates are YYYY-MM-DD
+            .sort((a, b) => b - a); // Sort descending, most recent first
         
         let currentStreak = 0;
-        let tempStreak = 1;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        // Check if we worked out today or yesterday
-        const lastWorkout = dates[0];
-        const daysDiff = Math.floor((today - lastWorkout) / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff <= 1) {
+
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        // Check if the most recent workout was today or yesterday
+        if (dates[0] >= yesterday) { // Comparing Date objects
             currentStreak = 1;
-            
-            // Count consecutive days
-            for (let i = 1; i < dates.length; i++) {
-                const prevDate = dates[i - 1];
+            for (let i = 0; i < dates.length - 1; i++) {
                 const currentDate = dates[i];
-                const diff = Math.floor((prevDate - currentDate) / (1000 * 60 * 60 * 24));
+                const previousDate = dates[i+1];
                 
-                if (diff === 1) {
+                const expectedPrevious = new Date(currentDate);
+                expectedPrevious.setDate(currentDate.getDate() - 1);
+
+                if (previousDate.getTime() === expectedPrevious.getTime()) {
                     currentStreak++;
                 } else {
-                    break;
+                    break; // Streak broken
                 }
             }
         }
         
         this.userData.streakDays = currentStreak;
-        this.userData.bestStreak = Math.max(this.userData.bestStreak, currentStreak);
+        this.userData.bestStreak = Math.max(this.userData.bestStreak || 0, currentStreak);
     }
 }
 
@@ -542,41 +1282,12 @@ const fitTracker = new FitTracker();
 // Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        const swCode = `
-            const CACHE_NAME = 'fittracker-v1';
-            const urlsToCache = [
-                '/',
-                '/index.html',
-                '/style.css',
-                '/app.js'
-            ];
-
-            self.addEventListener('install', (event) => {
-                event.waitUntil(
-                    caches.open(CACHE_NAME)
-                        .then((cache) => cache.addAll(urlsToCache))
-                );
-            });
-
-            self.addEventListener('fetch', (event) => {
-                event.respondWith(
-                    caches.match(event.request)
-                        .then((response) => {
-                            return response || fetch(event.request);
-                        })
-                );
-            });
-        `;
-
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-
-        navigator.serviceWorker.register(swUrl)
+        navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
-                console.log('SW registered: ', registration);
+                console.log('Service Worker registered successfully with scope:', registration.scope);
             })
             .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
+                console.log('Service Worker registration failed:', registrationError);
             });
     });
 }
@@ -585,3 +1296,4 @@ if ('serviceWorker' in navigator) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FitTracker;
 }
+// Ensure there's a newline at the end of the file
