@@ -143,103 +143,75 @@
     --color-warning-rgb: 230, 129, 97;
     --color-info-rgb: 167, 169, 169;
   }
-
-  /* Specific adjustments for set tracker items on small screens */
-  .set-tracker-item {
-    gap: var(--spacing-xs); /* Further reduce gap */
-  }
-  .set-number {
-    min-width: 35px; /* Allow set number to be a bit smaller */
-    font-size: 13px;
-  }
-  .weight-input-wrapper, .reps-input-wrapper {
-    min-width: 75px; /* Reduce min-width for input wrappers */
-    padding: 0 3px; /* Tighter padding */
-  }
-   .weight-input-wrapper svg, .reps-input-wrapper svg {
-    width: 14px;
-    height: 14px;
-  }
-  .set-weight-input, .set-reps-input {
-    font-size: 14px; /* Smaller font in inputs */
-    min-width: 25px;
-  }
-  .btn-icon {
-    width: 30px;
-    height: 30px;
-  }
-  .btn-icon svg {
-    width: 16px;
-    height: 16px;
-  }
 }
 
 /* Data attribute for manual theme switching */
 [data-color-scheme="dark"] {
-  --color-background: var(--color-background-dark);
-  --color-surface: var(--color-surface-dark);
-  --color-text: var(--color-text-primary-dark);
-  --color-text-secondary: var(--color-text-secondary-dark);
-  --color-primary: var(--color-accent-dark);
-  --color-primary-hover: var(--color-accent-hover-dark);
-  /* --color-primary-active: var(--color-accent-active-dark); /* Define if needed for active state of primary */
-  --color-secondary: rgba(119, 124, 124, 0.15); /* Keep for now, might be used by btn--secondary */
+  --color-background: rgba(31, 33, 33, 1);
+  --color-surface: rgba(38, 40, 40, 1);
+  --color-text: rgba(245, 245, 245, 1);
+  --color-text-secondary: rgba(167, 169, 169, 0.7);
+  --color-primary: rgba(50, 184, 198, 1);
+  --color-primary-hover: rgba(45, 166, 178, 1);
+  --color-primary-active: rgba(41, 150, 161, 1);
+  --color-secondary: rgba(119, 124, 124, 0.15);
   --color-secondary-hover: rgba(119, 124, 124, 0.25);
   --color-secondary-active: rgba(119, 124, 124, 0.3);
-  --color-border: var(--color-border-dark);
-  --color-error: var(--color-error-dark);
-  /* --color-success, --color-warning, --color-info for dark can be defined if specific dark versions are needed */
-  --color-focus-ring: rgba(var(--color-accent-rgb), 0.4); /* Use accent RGB for focus ring */
-  --color-btn-primary-text: #000000; /* Black text for orange primary buttons in dark mode for contrast */
-  --color-card-border: var(--color-card-border-dark);
+  --color-border: rgba(119, 124, 124, 0.3);
+  --color-error: rgba(255, 84, 89, 1);
+  --color-success: rgba(50, 184, 198, 1);
+  --color-warning: rgba(230, 129, 97, 1);
+  --color-info: rgba(167, 169, 169, 1);
+  --color-focus-ring: rgba(50, 184, 198, 0.4);
+  --color-btn-primary-text: rgba(19, 52, 59, 1);
+  --color-card-border: rgba(119, 124, 124, 0.15);
   --color-card-border-inner: rgba(119, 124, 124, 0.15);
   --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   --color-border-secondary: rgba(119, 124, 124, 0.2);
   --color-select-caret: rgba(245, 245, 245, 0.8);
-  --color-icon: var(--color-icon-dark);
-  --color-tab-active: var(--color-tab-active-dark);
-  --color-tab-inactive: var(--color-tab-inactive-dark);
-  --color-surface-rgb: var(--color-surface-dark-rgb);
 
   /* Common style patterns - updated for dark mode */
-  --focus-ring: 0 0 0 3px var(--color-focus-ring); /* Uses the updated --color-focus-ring */
-  --focus-outline: 2px solid var(--color-primary); /* Uses the updated --color-primary */
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-primary);
   --status-bg-opacity: 0.15;
   --status-border-opacity: 0.25;
   --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 
-  /* RGB versions for dark mode - define based on actual color values if needed for opacity */
-  /* e.g. --color-error-rgb: 255, 69, 58; (from FF453A) */
+  /* RGB versions for dark mode */
+  --color-success-rgb: 50, 184, 198;
+  --color-error-rgb: 255, 84, 89;
+  --color-warning-rgb: 230, 129, 97;
+  --color-info-rgb: 167, 169, 169;
 }
 
 [data-color-scheme="light"] {
-  --color-background: var(--color-background-light);
-  --color-surface: var(--color-surface-light);
-  --color-text: var(--color-text-primary-light);
-  --color-text-secondary: var(--color-text-secondary-light);
-  --color-primary: var(--color-accent-light);
-  --color-primary-hover: var(--color-accent-hover-light);
-  /* --color-primary-active: ...; */
-  --color-secondary: rgba(94, 82, 64, 0.12); /* Old secondary, review if used by btn--secondary */
+  --color-background: rgba(252, 252, 249, 1);
+  --color-surface: rgba(255, 255, 253, 1);
+  --color-text: rgba(19, 52, 59, 1);
+  --color-text-secondary: rgba(98, 108, 113, 1);
+  --color-primary: rgba(33, 128, 141, 1);
+  --color-primary-hover: rgba(29, 116, 128, 1);
+  --color-primary-active: rgba(26, 104, 115, 1);
+  --color-secondary: rgba(94, 82, 64, 0.12);
   --color-secondary-hover: rgba(94, 82, 64, 0.2);
   --color-secondary-active: rgba(94, 82, 64, 0.25);
-  --color-border: var(--color-border-light);
-  --color-btn-primary-text: #FFFFFF; /* White text on orange buttons */
-  --color-card-border: var(--color-card-border-light);
+  --color-border: rgba(94, 82, 64, 0.2);
+  --color-btn-primary-text: rgba(252, 252, 249, 1);
+  --color-card-border: rgba(94, 82, 64, 0.12);
   --color-card-border-inner: rgba(94, 82, 64, 0.12);
-  --color-error: var(--color-error-light);
-  /* --color-success, --color-warning, --color-info for light can be defined if specific versions are needed */
-  --color-focus-ring: rgba(var(--color-accent-rgb), 0.4);
-  --color-icon: var(--color-icon-light);
-  --color-tab-active: var(--color-tab-active-light);
-  --color-tab-inactive: var(--color-tab-inactive-light);
-  --color-surface-rgb: var(--color-surface-light-rgb);
+  --color-error: rgba(192, 21, 47, 1);
+  --color-success: rgba(33, 128, 141, 1);
+  --color-warning: rgba(168, 75, 47, 1);
+  --color-info: rgba(98, 108, 113, 1);
+  --color-focus-ring: rgba(33, 128, 141, 0.4);
 
-
-  /* RGB versions for light mode - define based on actual color values if needed for opacity */
-  /* e.g. --color-error-rgb: 255, 59, 48; (from FF3B30) */
+  /* RGB versions for light mode */
+  --color-success-rgb: 33, 128, 141;
+  --color-error-rgb: 192, 21, 47;
+  --color-warning-rgb: 168, 75, 47;
+  --color-info-rgb: 98, 108, 113;
 }
 
 /* Base styles */
@@ -686,56 +658,26 @@ select.form-control {
 
 /* Override design system with Apple palette */
 :root {
-  /* Light Theme Palette - Modern Fitness */
-  --color-background-light: #F9F9F9; /* Slightly off-white for a softer look */
-  --color-surface-light: #FFFFFF; /* Pure white for cards and surfaces */
-  --color-text-primary-light: #1D1D1F; /* Apple's dark gray for primary text */
-  --color-text-secondary-light: #86868B; /* Apple's gray for secondary text */
-  --color-accent-light: #FF6B00; /* Vibrant orange for primary actions and highlights */
-  --color-accent-rgb: 255, 107, 0; /* RGB for accent for opacity usage */
-  --color-accent-hover-light: #E86000;
-  --color-border-light: #E5E5E5; /* Softer border color */
-  --color-card-border-light: rgba(0, 0, 0, 0.08);
-  --color-icon-light: #86868B;
-  --color-tab-active-light: var(--color-accent-light);
-  --color-tab-inactive-light: #A0A0A5;
-  --color-error: #FF3B30; /* Apple's red for errors/danger */
+  --apple-white: #FFFFFF;
+  --apple-black: #1C1C1E;
+  --apple-blue: #007AFF;
+  --apple-gray-dark: #2C2C2E;
+  --apple-gray-light: #F2F2F7;
+  --apple-gray-medium: #8E8E93;
+  --apple-gray-separator: #C6C6C8;
 
-
-  /* Dark Theme Palette - Modern Fitness */
-  --color-background-dark: #000000; /* True black for OLED screens */
-  --color-surface-dark: #1C1C1E; /* Apple's dark gray for cards */
-  --color-text-primary-dark: #FFFFFF;
-  --color-text-secondary-dark: #8E8E93; /* Lighter gray for secondary text in dark mode */
-  --color-accent-dark: #FF6B00; /* Orange remains vibrant */
-  --color-accent-hover-dark: #E86000;
-  --color-border-dark: #38383A; /* Darker border */
-  --color-card-border-dark: rgba(255, 255, 255, 0.12);
-  --color-icon-dark: #8E8E93;
-  --color-tab-active-dark: var(--color-accent-dark);
-  --color-tab-inactive-dark: #757575;
-  --color-error-dark: #FF453A; /* Apple's red for dark mode */
-
-  /* Default to light theme */
-  --color-background: var(--color-background-light);
-  --color-surface: var(--color-surface-light);
-  --color-text: var(--color-text-primary-light);
-  --color-text-secondary: var(--color-text-secondary-light);
-  --color-primary: var(--color-accent-light); /* Changed from --apple-blue */
-  --color-primary-hover: var(--color-accent-hover-light);
-  --color-border: var(--color-border-light);
-  --color-card-border: var(--color-card-border-light);
-  --color-icon: var(--color-icon-light);
-  --color-tab-active: var(--color-tab-active-light);
-  --color-tab-inactive: var(--color-tab-inactive-light);
-  --color-error: var(--color-error-light); /* Default error color */
-
+  /* Override design system colors with Apple palette */
+  --color-background: var(--apple-gray-light);
+  --color-surface: var(--apple-white);
+  --color-text: var(--apple-black);
+  --color-text-secondary: var(--apple-gray-medium);
+  --color-primary: var(--apple-blue);
+  --color-primary-hover: #0056CC;
+  --color-border: var(--apple-gray-separator);
+  --color-card-border: rgba(0, 0, 0, 0.05);
 
   /* Apple typography */
-  --font-family-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-family-text: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Material Design standard easing */
-
+  --font-family-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, system-ui, sans-serif;
 
   /* Apple spacing */
   --spacing-xs: 4px;
@@ -745,29 +687,23 @@ select.form-control {
   --spacing-xl: 32px;
   
   /* Apple radius */
-  --radius-card: 18px; /* Even more rounded for a modern feel */
-  --radius-button: 12px; /* Even more rounded */
-  --radius-small: 10px; /* More rounded for smaller elements */
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-small: 6px;
   
   /* Apple shadows */
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08); /* Slightly deeper shadow for better depth */
-  --shadow-elevated: 0 6px 20px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--color-background-dark);
-    --color-surface: var(--color-surface-dark);
-    --color-text: var(--color-text-primary-dark);
-    --color-text-secondary: var(--color-text-secondary-dark);
-    --color-primary: var(--color-accent-dark);
-    --color-primary-hover: var(--color-accent-hover-dark);
-    --color-border: var(--color-border-dark);
-    --color-card-border: var(--color-card-border-dark);
-    --color-icon: var(--color-icon-dark);
-    --color-tab-active: var(--color-tab-active-dark);
-    --color-tab-inactive: var(--color-tab-inactive-dark);
-  --color-error: var(--color-error-dark);
+    --color-background: var(--apple-black);
+    --color-surface: var(--apple-gray-dark);
+    --color-text: var(--apple-white);
+    --color-text-secondary: #EBEBF5;
+    --color-border: #38383A;
+    --color-card-border: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -782,10 +718,7 @@ select.form-control {
 html {
   font-family: var(--font-family-apple);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; /* Added for Firefox */
-  font-size: 17px; /* Standard iOS size */
-  font-weight: 400; /* Regular weight */
-  letter-spacing: -0.022em; /* Apple standard letter spacing */
+  font-size: 16px;
 }
 
 body {
@@ -808,29 +741,15 @@ body {
 
 /* Header */
 .app-header {
-  background: rgba(var(--color-surface-rgb, 255, 255, 255), 0.8); /* Semi-transparent background */
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(24px) saturate(180%); /* Enhanced blur effect */
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
-
-/* Add RGB versions of surface colors for backdrop-filter */
-:root {
-  --color-surface-light-rgb: 255, 255, 255;
-  --color-surface-dark-rgb: 28, 28, 30; /* 1C1C1E */
-  --color-surface-rgb: var(--color-surface-light-rgb); /* Default to light */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-surface-rgb: var(--color-surface-dark-rgb);
-  }
-}
-
 
 .header-content {
   display: flex;
@@ -839,15 +758,14 @@ body {
 }
 
 .app-title {
-  font-size: 28px; /* Larger title, more prominent */
-  font-weight: 700; /* Bold */
+  font-size: 22px;
+  font-weight: 600;
   margin: 0;
   color: var(--color-text);
-  letter-spacing: -0.028em;
 }
 
 .header-date {
-  font-size: 15px; /* Slightly larger */
+  font-size: 14px;
   color: var(--color-text-secondary);
   font-weight: 500;
 }
@@ -861,15 +779,16 @@ body {
 
 .section {
   display: none;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.3s var(--ease-standard), transform 0.3s var(--ease-standard);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .section.active {
   display: block;
-  opacity: 1;
-  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Cards */
@@ -888,18 +807,16 @@ body {
 
 /* Welcome Card */
 .welcome-title {
-  font-size: 34px; /* Larger, more impactful */
-  font-weight: 700; /* Bold */
+  font-size: 28px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
   color: var(--color-text);
-  letter-spacing: -0.03em;
 }
 
 .welcome-subtitle {
-  font-size: 17px; /* Standard text size */
+  font-size: 16px;
   color: var(--color-text-secondary);
   margin: 0;
-  font-weight: 500; /* Medium */
 }
 
 /* Next Workout Card */
@@ -911,10 +828,9 @@ body {
 }
 
 .card-header h3 {
-  font-size: 20px; /* More prominent */
-  font-weight: 600; /* Semibold */
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
-  letter-spacing: -0.025em;
 }
 
 .workout-day {
@@ -922,22 +838,20 @@ body {
   color: white;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-small);
-  font-size: 13px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .workout-preview h4 {
-  font-size: 17px; /* Standard text size */
-  font-weight: 600; /* Semibold */
+  font-size: 16px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
-  letter-spacing: -0.022em;
 }
 
 .workout-preview p {
   color: var(--color-text-secondary);
   margin: 0 0 var(--spacing-lg) 0;
-  font-size: 15px; /* Slightly larger */
-  font-weight: 500; /* Medium */
+  font-size: 14px;
 }
 
 /* Buttons */
@@ -947,65 +861,41 @@ body {
   justify-content: center;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-button);
-  font-size: 17px; /* Standard iOS button text size */
-  font-weight: 600; /* Semibold for buttons */
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out, box-shadow 0.2s var(--ease-standard);
+  transition: all 0.2s ease;
   border: none;
   text-decoration: none;
-  font-family: var(--font-family-apple); /* Ensure button font */
-  min-height: 48px; /* Apple standard touch target */
-  letter-spacing: -0.022em;
-  will-change: transform, background-color; /* Optimize for animations */
+  font-family: inherit;
+  min-height: 44px;
 }
-
-.btn:active {
-  transform: scale(0.97); /* Slightly more pronounced active state */
-}
-
-.btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--color-primary-hover); /* Focus ring */
-}
-
 
 .btn--primary {
   background: var(--color-primary);
   color: white;
 }
 
-.btn--primary:hover {
+.btn--primary:hover, .btn--primary:active {
   background: var(--color-primary-hover);
+  transform: scale(0.98);
 }
 
 .btn--secondary {
   background: var(--color-border);
   color: var(--color-text);
-  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out; /* Added for secondary */
 }
-
-.btn--secondary:hover {
-    background: var(--color-text-secondary); /* Darken on hover */
-}
-
 
 .btn--outline {
   background: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text);
-  transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard), transform 0.1s ease-out; /* Added for outline */
-}
-
-.btn--outline:hover {
-    background: var(--color-border);
-    color: var(--color-text);
 }
 
 .start-workout-btn {
   width: 100%;
-  font-size: 18px; /* Larger text for primary call to action */
+  font-size: 18px;
   padding: var(--spacing-md);
-  font-weight: 600; /* Semibold */
 }
 
 /* Stats Grid */
@@ -1026,29 +916,26 @@ body {
 }
 
 .stat-number {
-  font-size: 26px; /* Slightly larger */
-  font-weight: 700; /* Bold */
+  font-size: 24px;
+  font-weight: 700;
   color: var(--color-primary);
   margin-bottom: var(--spacing-xs);
-  letter-spacing: -0.025em;
 }
 
 .stat-label {
-  font-size: 13px; /* Slightly larger */
+  font-size: 12px;
   color: var(--color-text-secondary);
-  font-weight: 500; /* Medium */
-  letter-spacing: -0.01em;
+  font-weight: 500;
 }
 
 /* Quote Card */
 .daily-quote {
   font-style: italic;
-  font-size: 17px; /* Standard text size */
-  line-height: 1.45; /* Improved line height */
+  font-size: 16px;
+  line-height: 1.4;
   color: var(--color-text-secondary);
   margin: 0;
   text-align: center;
-  font-weight: 500; /* Medium */
 }
 
 /* Workout Section */
@@ -1057,418 +944,113 @@ body {
 }
 
 .workout-info h2 {
-  font-size: 28px; /* Larger section title */
-  font-weight: 700; /* Bold */
+  font-size: 24px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
-  letter-spacing: -0.028em;
 }
 
 .workout-info p {
   color: var(--color-text-secondary);
   margin: 0;
-  font-size: 15px; /* Slightly larger */
-  font-weight: 500; /* Medium */
 }
 
 .day-selector {
   margin-top: var(--spacing-md);
   width: 100%;
-  font-size: 17px; /* Standard text size for select */
-  font-weight: 500; /* Medium */
 }
-
-.workout-controls {
-    display: flex;
-    flex-direction: column; /* Stack buttons and select */
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-}
-
-.btn--large {
-    padding: var(--spacing-md) var(--spacing-lg);
-    font-size: 18px;
-}
-
-.btn--danger {
-    background-color: var(--color-error);
-    color: white;
-}
-
-.btn--danger:hover {
-    background-color: #c0152f; /* Darken error color */
-}
-
-.btn--danger-outline {
-    background: transparent;
-    border: 1px solid var(--color-error);
-    color: var(--color-error);
-}
-
-.btn--danger-outline:hover {
-    background-color: rgba(var(--color-error-rgb, 255, 59, 48), 0.1); /* Use RGB for alpha background */
-}
-
-.workout-day-management-controls {
-    display: flex;
-    gap: var(--spacing-sm);
-    justify-content: space-between; /* Distribute buttons evenly */
-    margin-top: var(--spacing-sm); /* Space above buttons */
-}
-
-.workout-day-management-controls .btn svg {
-    margin-right: var(--spacing-xs);
-    vertical-align: middle; /* Migliora allineamento verticale */
-}
-
-.add-exercise-container .btn svg {
-    margin-right: var(--spacing-sm);
-    vertical-align: middle; /* Migliora allineamento verticale */
-}
-
 
 /* Exercise Cards */
 .exercise-card {
   background: var(--color-surface);
   border-radius: var(--radius-card);
-  padding: var(--spacing-lg); /* Increased padding for more space */
-  margin-bottom: var(--spacing-lg); /* Increased margin for better separation */
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-card-border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md); /* Added gap between elements inside the card */
 }
 
 .exercise-header {
   display: flex;
-  /* justify-content: space-between; /* Let items space out naturally or control with flex properties */
-  align-items: center;
-  gap: var(--spacing-sm); /* Add gap between items in header */
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
 }
 
 .exercise-name {
-  flex-grow: 1; /* Allow name to take up available space */
-  font-size: 20px; /* Even larger for more prominence */
-  font-weight: 700; /* Bold */
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
   flex: 1;
-  letter-spacing: -0.025em; /* Adjusted spacing */
 }
 
 .exercise-rpe {
-  background: var(--color-surface); /* Softer background */
-  color: var(--color-text-secondary); /* Subtler text color */
-  border: 1px solid var(--color-border); /* Add a border */
-  padding: 3px 8px; /* Adjusted padding */
-  border-radius: var(--radius-full); /* Pill shape */
-  font-size: 12px;
-  font-weight: 500; /* Medium */
-  margin-left: var(--spacing-md); /* Increased margin */
-  line-height: 1.2;
-  white-space: nowrap; /* Prevent RPE tag from wrapping */
-  margin-left: 0; /* Remove fixed margin, rely on gap in header */
-}
-
-.exercise-actions {
-    display: flex;
-    gap: var(--spacing-xs);
-    margin-left: auto; /* Push actions to the right */
-}
-
-.btn-edit-exercise, .btn-delete-exercise {
-    color: var(--color-text-secondary);
-}
-.btn-edit-exercise:hover, .btn-delete-exercise:hover {
-    color: var(--color-text);
-    background-color: var(--color-background); /* Slight hover effect */
-}
-.btn-delete-exercise:hover {
-    color: var(--color-error); /* Specific hover for delete */
-}
-
-
-/* RPE color theming is handled by --color-surface, --color-text-secondary, --color-border which adapt to light/dark mode */
-
-.exercise-info-grid { /* Renamed from exercise-details for clarity */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Responsive columns */
-  gap: var(--spacing-md); /* Increased gap */
-  /* margin-bottom removed */
-}
-
-.info-item { /* Renamed from detail-item */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center content */
-  background-color: var(--color-background); /* Slight background tint */
-  padding: var(--spacing-sm);
+  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-small);
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: var(--spacing-sm);
 }
 
-.info-label { /* Renamed from detail-label */
+.exercise-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.detail-item {
+  text-align: center;
+}
+
+.detail-label {
   font-size: 12px;
   color: var(--color-text-secondary);
   font-weight: 500;
-  margin-bottom: 2px; /* Reduced margin */
-  text-transform: uppercase; /* Uppercase for distinction */
-  letter-spacing: 0.05em; /* Wider letter spacing for labels */
+  margin-bottom: var(--spacing-xs);
 }
 
-.info-value { /* Renamed from detail-value */
-  font-size: 18px; /* Larger value text */
+.detail-value {
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
-  letter-spacing: -0.023em;
 }
 
 .exercise-notes {
-  font-size: 14px; /* Slightly smaller for de-emphasis */
+  font-size: 14px;
   color: var(--color-text-secondary);
-  /* margin-bottom removed */
+  margin-bottom: var(--spacing-md);
   font-style: italic;
-  font-weight: 400; /* Regular weight */
-  padding: var(--spacing-sm);
-  background-color: var(--color-background);
-  border-radius: var(--radius-small);
 }
 
 .exercise-controls {
   display: flex;
-  gap: var(--spacing-md); /* Increased gap */
+  gap: var(--spacing-sm);
   align-items: center;
-}
-
-.weight-input-wrapper { /* Added wrapper for icon and unit */
-  display: flex;
-  align-items: center;
-  flex: 1;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button); /* Consistent button radius */
-  padding: 0 var(--spacing-sm);
-}
-
-.weight-input-wrapper svg {
-  margin-right: var(--spacing-sm);
-  color: var(--color-icon);
-  width: 18px;
-  height: 18px;
 }
 
 .weight-input {
   flex: 1;
-  padding: var(--spacing-sm) 0; /* Adjusted padding */
-  border: none; /* Remove default border */
-  font-size: 16px; /* Standard input size */
-  background: transparent; /* Transparent background */
-  font-weight: 500;
-  min-width: 50px; /* Ensure it doesn't get too small */
-  text-align: center;
+  min-width: 80px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  font-size: 14px;
+  background: var(--color-background);
 }
-
-.weight-input:focus {
-    outline: none; /* Remove focus outline as wrapper handles it */
-}
-
-.weight-input-wrapper:focus-within { /* Style wrapper on input focus */
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-hover);
-}
-
-
-.weight-unit {
-    font-size: 14px;
-    color: var(--color-text-secondary);
-    font-weight: 500;
-    margin-left: var(--spacing-xs);
-}
-
 
 .timer-btn {
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-button); /* Consistent button radius */
+  border-radius: var(--radius-small);
   padding: var(--spacing-sm);
-  display: flex; /* For icon alignment */
-  align-items: center;
-  justify-content: center;
-  width: 48px; /* Fixed width for icon button */
-  height: 48px; /* Fixed height for icon button */
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s var(--ease-standard), transform 0.1s ease-out;
+  min-width: 60px;
 }
-
-.timer-btn svg {
-    width: 22px;
-    height: 22px;
-}
-
-.timer-btn:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.timer-btn:active {
-    transform: scale(0.95);
-}
-
-/* Set Tracking Styles */
-.exercise-sets-tracking {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-sm); /* Add some space above the set trackers */
-}
-
-.set-tracker-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs); /* Reduced gap */
-    padding: var(--spacing-sm) var(--spacing-xs); /* Reduced horizontal padding */
-    border-radius: var(--radius-small);
-    background-color: var(--color-background);
-    border: 1px solid transparent; /* For transition */
-    transition: background-color 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
-    flex-wrap: wrap; /* Allow items to wrap */
-}
-
-.set-tracker-item.completed {
-    background-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.1); /* Light accent color */
-    border-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.3);
-}
-
-@media (prefers-color-scheme: dark) {
-    .set-tracker-item.completed {
-        background-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.2);
-        border-color: rgba(var(--color-accent-rgb, 255, 107, 0), 0.5);
-    }
-}
-
-
-.set-number {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    min-width: 40px; /* Reduced min-width */
-    text-align: left; /* Ensure text doesn't center and take more space */
-    margin-right: var(--spacing-xs); /* Add some margin if it wraps */
-}
-
-.weight-input-wrapper, .reps-input-wrapper { /* Combined for shared properties */
-    display: flex;
-    align-items: center;
-    background-color: var(--color-surface); /* Match card surface for inputs */
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-button);
-    padding: 0 var(--spacing-xs); /* Reduced padding */
-    flex-grow: 1; /* Allow them to grow */
-    flex-shrink: 1; /* Allow them to shrink */
-    min-width: 90px; /* Minimum tappable area with icon */
-}
-
-
-.reps-input-wrapper {
-    /* flex: 0.5; /* Removed to allow more flexible sizing */
-}
-
-.weight-input-wrapper svg, .reps-input-wrapper svg {
-    margin-right: var(--spacing-xs); /* Reduced margin */
-    color: var(--color-icon);
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0; /* Prevent icon from shrinking */
-}
-
-.set-weight-input, .set-reps-input {
-    flex-grow: 1; /* Allow input to take available space */
-    padding: var(--spacing-sm) 0;
-    border: none;
-    font-size: 15px; /* Slightly reduced font size */
-    background: transparent;
-    font-weight: 500;
-    min-width: 30px; /* Reduced min-width for the input itself */
-    text-align: center;
-    width: 100%; /* Try to make it take the wrapper's flexed width */
-}
-
-.set-weight-input:focus, .set-reps-input:focus {
-    outline: none;
-}
-
-.weight-input-wrapper:focus-within, .reps-input-wrapper:focus-within { /* Combined */
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-hover);
-}
-
-
-.btn-icon { /* For checkmark/circle button */
-    background: transparent;
-    border: none;
-    padding: var(--spacing-xs);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%; /* Circular button */
-    width: 32px; /* Slightly smaller */
-    height: 32px; /* Slightly smaller */
-    color: var(--color-text-secondary);
-    transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard);
-    flex-shrink: 0; /* Prevent button from shrinking */
-}
-
-.btn-icon:hover {
-    background-color: var(--color-border);
-}
-
-.btn-icon svg {
-    width: 18px; /* Slightly smaller icon */
-    height: 18px; /* Slightly smaller icon */
-}
-
-.set-complete-btn .check-icon {
-    display: none;
-}
-.set-complete-btn .circle-icon {
-    display: inline-block;
-}
-
-.set-tracker-item.completed .set-complete-btn .check-icon {
-    display: inline-block;
-    color: var(--color-primary);
-}
-.set-tracker-item.completed .set-complete-btn .circle-icon {
-    display: none;
-}
-
-.set-tracker-item input:disabled,
-.set-tracker-item .set-complete-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: var(--color-background); /* Ensure disabled inputs have a clear background */
-}
-
-.set-tracker-item input:disabled::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-    color: var(--color-text-secondary);
-    opacity: 0.7;
-}
-.set-tracker-item input:disabled:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-   color: var(--color-text-secondary);
-   opacity: 0.7;
-}
-.set-tracker-item input:disabled::-moz-placeholder { /* Mozilla Firefox 19+ */
-   color: var(--color-text-secondary);
-   opacity: 0.7;
-}
-.set-tracker-item input:disabled:-ms-input-placeholder { /* Internet Explorer 10-11 */
-   color: var(--color-text-secondary);
-   opacity: 0.7;
-}
-.set-tracker-item input:disabled::placeholder { /* Most modern browsers */
-   color: var(--color-text-secondary);
-   opacity: 0.7;
-}
-
 
 /* Timer Section */
 .timer-container {
@@ -1492,17 +1074,17 @@ body {
 .timer-track {
   fill: none;
   stroke: var(--color-border);
-  stroke-width: 12; /* Even Thicker track */
+  stroke-width: 8;
 }
 
 .timer-fill {
   fill: none;
   stroke: var(--color-primary);
-  stroke-width: 12; /* Even Thicker fill */
+  stroke-width: 8;
   stroke-linecap: round;
-  stroke-dasharray: 565.48; /* 2 * PI * 90 */
+  stroke-dasharray: 565.48;
   stroke-dashoffset: 565.48;
-  transition: stroke-dashoffset 0.3s linear; /* Faster transition for smoother updates */
+  transition: stroke-dashoffset 1s linear;
 }
 
 .timer-time {
@@ -1510,11 +1092,10 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 56px; /* Even larger timer text for emphasis */
-  font-weight: 200; /* Ultra-light weight for timer for a sleek look */
+  font-size: 32px;
+  font-weight: 700;
   color: var(--color-text);
-  font-family: var(--font-family-apple); /* System font for consistency */
-  letter-spacing: -0.035em; /* Adjusted letter spacing */
+  font-family: var(--font-family-mono);
 }
 
 .timer-controls {
@@ -1529,7 +1110,7 @@ body {
 }
 
 .timer-icon {
-  font-size: 22px; /* Slightly larger icon */
+  font-size: 20px;
 }
 
 .timer-presets,
@@ -1544,11 +1125,10 @@ body {
 
 .timer-presets h3,
 .custom-timer h3 {
-  font-size: 20px; /* More prominent */
-  font-weight: 600; /* Semibold */
+  font-size: 18px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-md) 0;
   text-align: left;
-  letter-spacing: -0.025em;
 }
 
 .preset-buttons {
@@ -1562,22 +1142,16 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
   padding: var(--spacing-md);
-  font-size: 17px; /* Standard text size */
-  font-weight: 600; /* Semibold */
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard), transform 0.1s ease-out;
-  letter-spacing: -0.022em;
-  will-change: background-color, color, transform;
+  transition: all 0.2s ease;
 }
 
-.preset-btn:hover {
+.preset-btn:hover, .preset-btn:active {
   background: var(--color-primary);
   color: white;
-}
-.preset-btn:active {
   transform: scale(0.95);
-  background: var(--color-primary-hover); /* Consistent active state */
-  color: white;
 }
 
 .time-input {
@@ -1591,18 +1165,17 @@ body {
 .time-field {
   width: 60px;
   text-align: center;
-  font-size: 18px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
+  font-size: 18px;
+  font-weight: 600;
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
   background: var(--color-background);
-  letter-spacing: -0.023em;
 }
 
 .time-input span {
-  font-size: 28px; /* Larger separator */
-  font-weight: 600; /* Semibold */
+  font-size: 24px;
+  font-weight: 700;
   color: var(--color-text);
 }
 
@@ -1612,10 +1185,9 @@ body {
 }
 
 .progress-header h2 {
-  font-size: 28px; /* Larger section title */
-  font-weight: 700; /* Bold */
+  font-size: 24px;
+  font-weight: 600;
   margin: 0;
-  letter-spacing: -0.028em;
 }
 
 .week-calendar {
@@ -1631,10 +1203,9 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-small);
-  font-size: 13px; /* Slightly larger */
-  font-weight: 600; /* Semibold */
+  font-size: 12px;
+  font-weight: 600;
   background: var(--color-background);
-  letter-spacing: -0.01em;
 }
 
 .day-item.completed {
@@ -1658,8 +1229,6 @@ body {
   align-items: center;
   padding: var(--spacing-sm) 0;
   border-bottom: 1px solid var(--color-border);
-  font-size: 17px; /* Standard text size */
-  font-weight: 500; /* Medium */
 }
 
 .stat-item:last-child {
@@ -1671,58 +1240,7 @@ body {
   color: var(--color-text-secondary);
   font-style: italic;
   margin: var(--spacing-lg) 0;
-  font-size: 15px; /* Slightly larger */
-  font-weight: 500; /* Medium */
 }
-
-/* Workout Log History */
-.workout-log-history {
-    max-height: 400px; /* Limit height and make it scrollable */
-    overflow-y: auto;
-    padding-right: var(--spacing-sm); /* For scrollbar */
-}
-
-.log-entry {
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 1px solid var(--color-border);
-}
-.log-entry:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.log-entry-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-sm);
-}
-
-.log-entry-header h4 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
-}
-.log-entry-header .date {
-    font-size: 13px;
-    color: var(--color-text-secondary);
-}
-
-.log-exercise-item {
-    margin-bottom: var(--spacing-xs);
-    font-size: 14px;
-}
-.log-exercise-item strong {
-    font-weight: 500;
-}
-
-.log-set-item {
-    padding-left: var(--spacing-md);
-    font-size: 13px;
-    color: var(--color-text-secondary);
-}
-
 
 /* Guide Section */
 .guide-header {
@@ -1730,10 +1248,9 @@ body {
 }
 
 .guide-header h2 {
-  font-size: 28px; /* Larger section title */
-  font-weight: 700; /* Bold */
+  font-size: 24px;
+  font-weight: 600;
   margin: 0;
-  letter-spacing: -0.028em;
 }
 
 .rpe-scale {
@@ -1749,14 +1266,14 @@ body {
 }
 
 .rpe-number {
-  width: 44px; /* Slightly larger */
-  height: 44px; /* Slightly larger */
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700; /* Bold */
-  font-size: 17px; /* Standard text size */
+  font-weight: 700;
+  font-size: 16px;
   color: white;
   flex-shrink: 0;
 }
@@ -1768,17 +1285,15 @@ body {
 .rpe-6 { background: var(--color-primary); }
 
 .rpe-description h4 {
-  font-size: 17px; /* Standard text size */
-  font-weight: 600; /* Semibold */
+  font-size: 16px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
-  letter-spacing: -0.022em;
 }
 
 .rpe-description p {
-  font-size: 15px; /* Slightly larger */
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
-  font-weight: 500; /* Medium */
 }
 
 .tips-list {
@@ -1793,32 +1308,30 @@ body {
 }
 
 .tip-number {
-  width: 36px; /* Slightly larger */
-  height: 36px; /* Slightly larger */
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--color-primary);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700; /* Bold */
-  font-size: 17px; /* Standard text size */
+  font-weight: 700;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .tip-content h4 {
-  font-size: 17px; /* Standard text size */
-  font-weight: 600; /* Semibold */
+  font-size: 16px;
+  font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
-  letter-spacing: -0.022em;
 }
 
 .tip-content p {
-  font-size: 15px; /* Slightly larger */
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
-  line-height: 1.45; /* Improved line height */
-  font-weight: 500; /* Medium */
+  line-height: 1.4;
 }
 
 /* Tab Bar */
@@ -1829,12 +1342,12 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 428px;
-  background: rgba(var(--color-surface-rgb, 255, 255, 255), 0.8); /* Semi-transparent background */
+  background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   display: flex;
   padding: var(--spacing-sm) 0 calc(var(--spacing-sm) + env(safe-area-inset-bottom));
-  backdrop-filter: blur(24px) saturate(180%); /* Enhanced blur effect */
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 1000;
 }
 
@@ -1849,29 +1362,21 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--color-tab-inactive);
+  color: var(--color-text-secondary);
 }
 
 .tab-item.active {
-  color: var(--color-tab-active);
+  color: var(--color-primary);
 }
 
 .tab-icon {
-  /* font-size is not needed as SVG has intrinsic size */
-  margin-bottom: 3px; /* Adjusted spacing */
-  line-height: 1; /* Ensure proper alignment of SVG */
-}
-
-.tab-icon svg {
-  width: 24px; /* Standard icon size */
-  height: 24px; /* Standard icon size */
-  stroke-width: 1.5; /* Slightly thinner stroke for a more refined look */
+  font-size: 24px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .tab-label {
-  font-size: 10px; /* Standard iOS tab label size */
-  font-weight: 500; /* Medium */
-  letter-spacing: -0.008em;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* Form elements */
@@ -1880,11 +1385,10 @@ body {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
-  font-size: 17px; /* Standard text size */
+  font-size: 16px;
   background: var(--color-surface);
   color: var(--color-text);
-  font-family: var(--font-family-apple); /* Ensure form control font */
-  letter-spacing: -0.022em;
+  font-family: inherit;
 }
 
 .form-control:focus {
@@ -1901,85 +1405,27 @@ body {
   }
   
   .preset-buttons {
-    grid-template-columns: repeat(2, 1fr); /* Already good for small screens */
+    grid-template-columns: repeat(2, 1fr);
   }
   
-  .exercise-info-grid { /* Updated class name */
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); /* Adjust minmax for smaller cards if needed */
+  .exercise-details {
+    grid-template-columns: 1fr;
     gap: var(--spacing-xs);
   }
-
-  /* Specific adjustments for set tracker items on small screens are now at the end of the file */
 }
-
-/* Media Query for small screen specific adjustments for set-tracker-item, moved here for better organization */
-@media (max-width: 375px) {
-    .set-tracker-item {
-        gap: 2px; /* Even Further reduce gap */
-        padding: var(--spacing-xs) 2px; /* Tighter padding */
-    }
-    .set-number {
-        min-width: 30px; /* Allow set number to be a bit smaller */
-        font-size: 12px; /* Smaller font */
-        margin-right: 2px;
-    }
-    .weight-input-wrapper, .reps-input-wrapper {
-        min-width: 60px; /* Reduce min-width for input wrappers */
-        padding: 0 2px; /* Tighter padding */
-        gap: 2px; /* Reduce internal gap */
-    }
-    .weight-input-wrapper svg, .reps-input-wrapper svg {
-        width: 12px; /* Smaller icon */
-        height: 12px;
-        margin-right: 2px;
-    }
-    .set-weight-input, .set-reps-input {
-        font-size: 13px; /* Smaller font in inputs */
-        min-width: 20px; /* Minimal width */
-        padding: 4px 0;
-    }
-    .weight-unit {
-        font-size: 12px; /* Smaller unit text */
-        margin-left: 1px;
-    }
-    .btn-icon { /* This is the set complete button */
-        width: 28px; /* Smaller button */
-        height: 28px;
-        padding: 2px;
-    }
-    .btn-icon svg { /* Icon inside set complete button */
-        width: 14px;
-        height: 14px;
-    }
-
-    .exercise-info-grid { /* Ensure this also adapts if not already done */
-        grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
-    }
-}
-
 
 /* Animations and interactions */
-/* .btn:active is already defined with more specificity */
-
-.exercise-card {
-  /* ... existing styles ... */
-  transition: transform 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
-  will-change: transform, box-shadow;
+.btn:active {
+  transform: scale(0.95);
 }
 
 .exercise-card:hover {
-  transform: translateY(-3px); /* Slightly more lift */
+  transform: translateY(-1px);
   box-shadow: var(--shadow-elevated);
 }
 
-.tab-item {
-  /* ... existing styles ... */
-  transition: color 0.2s var(--ease-standard), transform 0.1s ease-out;
-  will-change: color, transform;
-}
-
 .tab-item:active {
-  transform: scale(0.92); /* Slightly more pronounced active state for tabs */
+  transform: scale(0.95);
 }
 
 /* Accessibility */
@@ -1990,100 +1436,6 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
-
-.add-exercise-container .btn svg {
-    margin-right: var(--spacing-sm);
-}
-
-/* Modal Styles */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 2000; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0,0,0,0.5); /* Black w/ opacity for backdrop */
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background-color: var(--color-surface);
-  margin: auto;
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  width: 90%;
-  max-width: 500px;
-  box-shadow: var(--shadow-elevated);
-  position: relative;
-  animation: fadeInModal 0.3s var(--ease-standard);
-}
-
-@keyframes fadeInModal {
-  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.close-btn {
-  color: var(--color-text-secondary);
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 1;
-}
-
-.close-btn:hover,
-.close-btn:focus {
-  color: var(--color-text);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.modal h3 {
-    font-size: 22px;
-    margin-bottom: var(--spacing-md);
-    color: var(--color-text);
-}
-
-.form-group {
-    margin-bottom: var(--spacing-md);
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: var(--spacing-xs);
-    color: var(--color-text-secondary);
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-lg);
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
-}
-
-@media (max-width: 420px) { /* Breakpoint per schermi più piccoli della modale */
-    .form-grid {
-        grid-template-columns: 1fr; /* Stack su una colonna */
-        gap: 0; /* Rimuovi gap tra righe se diventano stacked, il form-group ha già margin-bottom */
-    }
-    .modal-content { /* Riduci padding su schermi molto piccoli per dare più spazio al contenuto */
-        padding: var(--spacing-md);
-    }
-}
-
 
 /* PWA specific styles */
 @media (display-mode: standalone) {
