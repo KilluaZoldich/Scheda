@@ -8,7 +8,7 @@ class FitTracker {
             remaining: 0,
             isRunning: false,
             interval: null,
-            appInterval: null // Aggiunto per gestire l'intervallo dell'app separatamente
+            appInterval: null
         };
         this.sessionData = {
             active: false,
@@ -137,9 +137,9 @@ class FitTracker {
             daySelector.disabled = true;
             document.getElementById('btnEditDay').disabled = true;
             document.getElementById('btnDeleteDay').disabled = true;
-            document.getElementById('btnAddNewExerciseToDay').disabled = true; // Disable add exercise if no day
+            document.getElementById('btnAddNewExerciseToDay').disabled = true;
              document.getElementById('startWorkoutSessionBtn').disabled = true;
-            this.currentDay = null; // Ensure currentDay is null
+            this.currentDay = null;
         } else {
             daySelector.disabled = false;
             document.getElementById('btnEditDay').disabled = false;
@@ -166,7 +166,6 @@ class FitTracker {
         if (this.currentDay) {
             this.renderWorkoutHeader();
         } else {
-             // If no current day after update (e.g. all days deleted)
             document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
             document.getElementById('workoutFocus').textContent = "Aggiungi un nuovo giorno di allenamento.";
             document.getElementById('exercisesList').innerHTML = '<p class="no-data">Nessun esercizio. Aggiungi un giorno di allenamento.</p>';
@@ -211,8 +210,8 @@ class FitTracker {
         // Day selector
         document.getElementById('daySelector').addEventListener('change', (e) => {
             this.currentDay = e.target.value;
-            this.renderWorkout(); // Re-render workout when day changes
-            this.updateWorkoutPreview(); // Update home page preview
+            this.renderWorkout();
+            this.updateWorkoutPreview();
         });
 
         // Timer controls
@@ -260,7 +259,7 @@ class FitTracker {
         document.getElementById('dayEditorForm').addEventListener('submit', (e) => this.handleDayEditorSubmit(e));
 
         // Exercise Management Listeners
-        document.getElementById('btnAddNewExerciseToDay').addEventListener('click', () => this.openExerciseEditor(this.currentDay)); // Corrected ID
+        document.getElementById('btnAddNewExerciseToDay').addEventListener('click', () => this.openExerciseEditor(this.currentDay));
         document.getElementById('closeExerciseEditorModal').addEventListener('click', () => this.closeExerciseEditor());
         document.getElementById('cancelExerciseEditor').addEventListener('click', () => this.closeExerciseEditor());
         document.getElementById('exerciseEditorForm').addEventListener('submit', (e) => this.handleExerciseEditorSubmit(e));
@@ -334,7 +333,6 @@ class FitTracker {
             if(addExerciseContainer) addExerciseContainer.style.display = 'none'; // Hide if no valid day
             return;
         }
-        // Ensure "Add Exercise" button is visible if we are here because a valid dayId was passed
         const addExerciseContainer = document.getElementById('addExerciseContainer');
         if(addExerciseContainer) addExerciseContainer.style.display = 'block';
 
@@ -520,25 +518,25 @@ class FitTracker {
 
     renderWorkout(isSessionActive = false) {
         const addExerciseContainer = document.getElementById('addExerciseContainer');
+        const startWorkoutBtn = document.getElementById('startWorkoutSessionBtn');
+
 
         if (!this.currentDay || !this.workoutData[this.currentDay]) {
             document.getElementById('workoutTitle').textContent = "Nessun Allenamento";
             document.getElementById('workoutFocus').textContent = "Aggiungi o seleziona un giorno.";
             document.getElementById('exercisesList').innerHTML = '<p class="no-data">Nessun giorno selezionato.</p>';
             if(addExerciseContainer) addExerciseContainer.style.display = 'none';
-             document.getElementById('startWorkoutSessionBtn').disabled = true;
+            if(startWorkoutBtn) startWorkoutBtn.disabled = true;
+            this.updateWorkoutPreview(); // Update home preview to reflect no day selected
             return;
         }
 
-        document.getElementById('startWorkoutSessionBtn').disabled = false;
+        if(startWorkoutBtn) startWorkoutBtn.disabled = false;
         if(addExerciseContainer) addExerciseContainer.style.display = isSessionActive ? 'none' : 'block';
 
 
         const workout = this.workoutData[this.currentDay];
-        // this.renderWorkoutHeader() è già chiamato da updateDaySelector o dal change del selector
-        // Non serve chiamarlo di nuovo qui a meno che il nome/focus del giorno non cambi DENTRO renderWorkout,
-        // il che non accade.
-        // Se `daySelector` è gestito correttamente, `this.currentDay` sarà sempre valido se ci sono giorni.
+        this.renderWorkoutHeader();
 
         const exercisesList = document.getElementById('exercisesList');
         exercisesList.innerHTML = '';
@@ -548,12 +546,18 @@ class FitTracker {
                 const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive);
                 exercisesList.appendChild(exerciseCard);
             });
+             if(startWorkoutBtn) startWorkoutBtn.disabled = isSessionActive; // Disable start if session active
         } else {
             exercisesList.innerHTML = '<p class="no-data">Nessun esercizio in questo giorno. Aggiungine uno!</p>';
+            if(startWorkoutBtn) startWorkoutBtn.disabled = true; // Disable start if no exercises
         }
 
         document.querySelectorAll('.exercise-controls').forEach(controls => {
             controls.style.display = isSessionActive ? 'flex' : 'none';
+        });
+         // Disable CRUD buttons for exercises if session is active
+        document.querySelectorAll('.btn-edit-exercise, .btn-delete-exercise').forEach(btn => {
+            btn.disabled = isSessionActive;
         });
 
         this.updateWorkoutPreview();
@@ -563,8 +567,8 @@ class FitTracker {
         const card = document.createElement('div');
         card.className = 'exercise-card-v2';
         
-        const sessionExerciseData = (this.sessionData && this.sessionData.active && this.sessionData.exercises && this.sessionData.exercises[index])
-                                    ? this.sessionData.exercises[index].sets
+        const sessionExerciseData = (this.sessionData && this.sessionData.active && this.sessionData.exercises && this.sessionData.exercises[index.toString()])
+                                    ? this.sessionData.exercises[index.toString()].sets
                                     : [];
 
         card.innerHTML = `
@@ -613,8 +617,6 @@ class FitTracker {
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Aggiungi Set
                 </button>
-                // Il bottone timer riposo per esercizio intero è stato rimosso perché ora il tracciamento è per set.
-                // Se necessario, un timer di riposo può essere avviato dopo aver completato un set.
             </div>
         `;
         return card;
@@ -636,13 +638,13 @@ class FitTracker {
                 <div class="set-tracker-item ${isCompleted ? 'completed' : ''}" id="set-${this.currentDay}-${exerciseIndex}-${i}">
                     <span class="set-number">Set ${i + 1}</span>
                     <div class="weight-input-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
                         <input type="number" class="weight-input set-weight-input" placeholder="Peso" value="${weightValue}"
                                id="weight-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="0.25" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
                         <span class="weight-unit">kg</span>
                     </div>
                     <div class="reps-input-wrapper">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
                         <input type="number" class="reps-input set-reps-input" placeholder="Reps" value="${repsValue}"
                                id="reps-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="1" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
                     </div>
@@ -656,72 +658,77 @@ class FitTracker {
         return html;
     }
 
-    addSet(day, exerciseIndex) {
-        console.log(`Adding set for ${day}, exercise ${exerciseIndex}`);
-        const exercise = this.workoutData[day].exercises[exerciseIndex];
-        const setsContainer = document.getElementById(`sets-tracking-${day}-${exerciseIndex}`);
-        const currentSetCount = setsContainer.children.length;
-
-        // Aggiorna il numero di serie nell'oggetto exercise.sets in workoutData
-        // Questo è importante se vogliamo che il numero di serie "pianificate" si aggiorni
-        // Tuttavia, questo modifica la scheda originale. Alternativamente, si potrebbe gestire
-        // il numero di set effettivi solo in sessionData. Per ora, modifico workoutData.
-        exercise.sets = currentSetCount + 1;
-        this.saveWorkoutData(); // Salva la modifica al numero di sets
-
-        // Aggiorna il display delle serie pianificate
-        const setsPlannedElement = document.getElementById(`sets-planned-${day}-${exerciseIndex}`);
-        if (setsPlannedElement) {
-            setsPlannedElement.textContent = exercise.sets;
+    addSet(dayId, exerciseIndex) {
+        if (!this.sessionData.active) {
+            alert("Devi prima iniziare una sessione di allenamento per aggiungere set.");
+            return;
         }
+        const exercise = this.workoutData[dayId].exercises[exerciseIndex];
+        const setsTrackingDiv = document.getElementById(`sets-tracking-${dayId}-${exerciseIndex}`);
 
-        // Aggiungi il nuovo set tracker alla UI
-        const newSetHtml = this.renderSetTrackers(exercise, exerciseIndex, true,
-            (this.sessionData.active && this.sessionData.exercises[exerciseIndex]) ? this.sessionData.exercises[exerciseIndex].sets : []
-        );
-        // Rirenderizza solo i set tracker per questo esercizio
-        setsContainer.innerHTML = newSetHtml;
+        // Troviamo il numero di set attualmente visualizzati per questo esercizio
+        const currentDisplayedSets = setsTrackingDiv.querySelectorAll('.set-tracker-item').length;
+        const newSetIndex = currentDisplayedSets; // L'indice del nuovo set sarà il conteggio attuale
 
+        // Aggiungere il nuovo set a sessionData prima di renderizzare
+        const exerciseKey = exerciseIndex.toString();
+        if (!this.sessionData.exercises[exerciseKey]) {
+            this.sessionData.exercises[exerciseKey] = {
+                name: exercise.name,
+                sets: []
+            };
+        }
+        // Assicura che l'array sets sia abbastanza lungo
+        while (this.sessionData.exercises[exerciseKey].sets.length <= newSetIndex) {
+            this.sessionData.exercises[exerciseKey].sets.push({ weight: '', reps: '', completed: false });
+        }
+        // Non è necessario modificare exercise.sets in workoutData per i set aggiunti dinamicamente durante la sessione
 
-        // Abilita gli input per il nuovo set se la sessione è attiva
-        // Questo ora è gestito da renderSetTrackers che riceve isSessionActive
+        // Ora, ri-renderizza TUTTI i set tracker per questo esercizio, usando i dati aggiornati da sessionData
+        // (o i dati di default se non ci sono ancora dati di sessione per questo set specifico)
+        const sessionSets = this.sessionData.exercises[exerciseKey] ? this.sessionData.exercises[exerciseKey].sets : [];
+        setsTrackingDiv.innerHTML = this.renderSetTrackers(exercise, exerciseIndex, true, sessionSets);
+
+        // Aggiorna il contatore delle serie visualizzato se il design lo prevede
+        const setsPlannedElement = document.getElementById(`sets-planned-${dayId}-${exerciseIndex}`);
+        if (setsPlannedElement) {
+             // Mostra il numero maggiore tra i set pianificati e quelli tracciati
+            setsPlannedElement.textContent = Math.max(parseInt(exercise.sets) || 0, newSetIndex + 1);
+        }
     }
 
-    saveSetDataOnInput(day, exerciseIndex, setIndex) {
+    saveSetDataOnInput(dayId, exerciseIndex, setIndex) {
         if (!this.sessionData.active) return;
-        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
-        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
-        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, null);
+        const weightInput = document.getElementById(`weight-${dayId}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${dayId}-${exerciseIndex}-${setIndex}`);
+        this.saveSetData(dayId, exerciseIndex, setIndex, weightInput.value, repsInput.value, null);
     }
 
-    toggleSetComplete(day, exerciseIndex, setIndex) {
+    toggleSetComplete(dayId, exerciseIndex, setIndex) {
         if (!this.sessionData.active) return;
 
-        const setItem = document.getElementById(`set-${day}-${exerciseIndex}-${setIndex}`);
+        const setItem = document.getElementById(`set-${dayId}-${exerciseIndex}-${setIndex}`);
         const isCompleted = setItem.classList.toggle('completed');
-        const weightInput = document.getElementById(`weight-${day}-${exerciseIndex}-${setIndex}`);
-        const repsInput = document.getElementById(`reps-${day}-${exerciseIndex}-${setIndex}`);
+        const weightInput = document.getElementById(`weight-${dayId}-${exerciseIndex}-${setIndex}`);
+        const repsInput = document.getElementById(`reps-${dayId}-${exerciseIndex}-${setIndex}`);
 
-        this.saveSetData(day, exerciseIndex, setIndex, weightInput.value, repsInput.value, isCompleted);
+        this.saveSetData(dayId, exerciseIndex, setIndex, weightInput.value, repsInput.value, isCompleted);
 
         if (isCompleted) {
-            console.log(`Set ${setIndex + 1} for ${this.workoutData[day].exercises[exerciseIndex].name} completed with ${weightInput.value}kg for ${repsInput.value} reps.`);
-            // Avvia automaticamente il timer di riposo per l'esercizio corrente
-            const currentExercise = this.workoutData[day].exercises[exerciseIndex];
+            const currentExercise = this.workoutData[dayId].exercises[exerciseIndex];
             if (currentExercise && currentExercise.rest > 0) {
                 this.startRestTimer(currentExercise.rest);
             }
         }
     }
 
-    saveSetData(day, exerciseIndex, setIndex, weight, reps, completedStatus) {
-        if (!this.sessionData) this.sessionData = { active: false, currentDay: null, startTime: null, exercises: {} };
-        if (!this.sessionData.exercises) this.sessionData.exercises = {};
+    saveSetData(dayId, exerciseIndex, setIndex, weight, reps, completedStatus) {
+        if (!this.sessionData || !this.sessionData.active) return;
 
         const exerciseKey = exerciseIndex.toString();
         if (!this.sessionData.exercises[exerciseKey]) {
             this.sessionData.exercises[exerciseKey] = {
-                name: this.workoutData[day].exercises[exerciseIndex].name,
+                name: this.workoutData[dayId].exercises[exerciseIndex].name,
                 sets: []
             };
         }
@@ -757,7 +764,7 @@ class FitTracker {
     }
 
     startWorkoutSession() {
-        if (!this.currentDay || !this.workoutData[this.currentDay] || this.workoutData[this.currentDay].exercises.length === 0) {
+        if (!this.currentDay || !this.workoutData[this.currentDay] || !this.workoutData[this.currentDay].exercises.length === 0) {
             alert("Nessun esercizio in questa scheda per iniziare l'allenamento. Aggiungi prima degli esercizi.");
             return;
         }
@@ -765,7 +772,7 @@ class FitTracker {
             active: true,
             currentDay: this.currentDay,
             startTime: new Date(),
-            exercises: {} // Inizializza vuoto, verrà popolato da saveSetData
+            exercises: {}
         };
 
         document.getElementById('startWorkoutSessionBtn').style.display = 'none';
@@ -785,7 +792,7 @@ class FitTracker {
         if (!this.sessionData.active) return;
 
         const endTime = new Date();
-        const durationMs = endTime - (this.sessionData.startTime || endTime); // Fallback se startTime non fosse settato
+        const durationMs = endTime - (this.sessionData.startTime || endTime);
 
         console.log("Workout session ended. Duration:", durationMs, "Data:", this.sessionData);
 
@@ -801,13 +808,13 @@ class FitTracker {
             this.userData.workoutLogs = [];
         }
         this.userData.workoutLogs.push({
-            date: this.sessionData.startTime ? this.sessionData.startTime.toISOString().split('T')[0] : today, // Usa la data di inizio sessione
+            date: this.sessionData.startTime ? this.sessionData.startTime.toISOString().split('T')[0] : today,
             day: this.sessionData.currentDay,
             workoutName: this.workoutData[this.sessionData.currentDay] ? this.workoutData[this.sessionData.currentDay].name : 'Allenamento Sconosciuto',
             startTime: this.sessionData.startTime ? this.sessionData.startTime.toISOString() : null,
             endTime: endTime.toISOString(),
             durationMs: durationMs,
-            exercises: JSON.parse(JSON.stringify(this.sessionData.exercises)) // Deep copy
+            exercises: JSON.parse(JSON.stringify(this.sessionData.exercises))
         });
 
 
@@ -1043,9 +1050,6 @@ class FitTracker {
         }
     }
 
-    // getUserData(key) no longer makes sense in this way if weights are per log
-    // If specific user settings were needed, a similar function could be used.
-
     updateHomeStats() {
         if (!this.userData) this.loadUserData();
         
@@ -1061,14 +1065,13 @@ class FitTracker {
         
         const now = new Date();
         const startOfWeek = new Date(now);
-        // Adjust to make Monday the start of the week (0=Sun, 1=Mon, ..., 6=Sat)
-        const dayOfWeek = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
-        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // if Sunday (0), go back 6 days. If Monday (1), go back 0. If Tuesday (2) go back 1.
+        const dayOfWeek = now.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         startOfWeek.setDate(now.getDate() + diff);
         startOfWeek.setHours(0, 0, 0, 0);
         
         return this.userData.workoutDates.filter(dateStr => {
-            const date = new Date(dateStr); // Assuming dateStr is YYYY-MM-DD
+            const date = new Date(dateStr);
             return date >= startOfWeek;
         }).length;
     }
@@ -1094,9 +1097,9 @@ class FitTracker {
         }
 
         let html = '<ul class="stats-list">';
-        for (const exerciseId in lastLog.exercises) { // exerciseId is the index from the session
+        for (const exerciseId in lastLog.exercises) {
             const exerciseLog = lastLog.exercises[exerciseId];
-            html += `<li class="stat-item"><span>${exerciseLog.name}</span></li>`; // Use logged name
+            html += `<li class="stat-item"><span>${exerciseLog.name}</span></li>`;
             if (exerciseLog.sets && exerciseLog.sets.length > 0) {
                 exerciseLog.sets.forEach((set, index) => {
                     if (set.completed) {
@@ -1122,9 +1125,8 @@ class FitTracker {
         const logsToShow = this.userData.workoutLogs.slice().reverse().slice(0, 20);
 
         logsToShow.forEach(log => {
-            const logDate = new Date(log.date); // log.date should be YYYY-MM-DD string from startTime
+            const logDate = new Date(log.date);
             const formattedDate = logDate.toLocaleDateString('it-IT', { year: 'numeric', month: 'short', day: 'numeric' });
-            // log.workoutName è stato aggiunto in endWorkoutSession
             const workoutDisplayName = log.workoutName || `Allenamento del ${formattedDate}`;
 
 
@@ -1179,7 +1181,6 @@ class FitTracker {
             dayItem.className = 'day-item';
             
             const isToday = date.toDateString() === today.toDateString();
-            // Format date to YYYY-MM-DD for comparison with workoutDates
             const dateStringForComparison = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
             const hasWorkout = this.userData.workoutDates && 
                 this.userData.workoutDates.includes(dateStringForComparison);
@@ -1213,29 +1214,6 @@ class FitTracker {
         return remainingSeconds === 0 ? `${minutes}'` : `${minutes}'${remainingSeconds}"`;
     }
 
-    // completeWorkout() is now effectively handled by endWorkoutSession()
-    // so this function can be removed or refactored if any unique logic remains.
-    // For now, commenting out as endWorkoutSession takes over its responsibilities.
-    /*
-    completeWorkout() {
-        if (!this.userData) this.loadUserData();
-        
-        const today = new Date().toISOString().split('T')[0];
-        
-        if (!this.userData.workoutDates.includes(today)) {
-            this.userData.workoutDates.push(today);
-            this.userData.totalWorkouts++;
-            
-            this.updateStreak();
-        }
-        
-        this.userData.lastWorkout = today;
-        this.saveUserData();
-        this.updateHomeStats();
-        this.renderProgress();
-    }
-    */
-
     updateStreak() {
         if (!this.userData.workoutDates || this.userData.workoutDates.length === 0) {
             this.userData.streakDays = 0;
@@ -1243,8 +1221,8 @@ class FitTracker {
         };
         
         const dates = this.userData.workoutDates
-            .map(d => new Date(d)) // Assumes dates are YYYY-MM-DD
-            .sort((a, b) => b - a); // Sort descending, most recent first
+            .map(d => new Date(d))
+            .sort((a, b) => b - a);
         
         let currentStreak = 0;
         const today = new Date();
@@ -1253,8 +1231,7 @@ class FitTracker {
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
 
-        // Check if the most recent workout was today or yesterday
-        if (dates[0] >= yesterday) { // Comparing Date objects
+        if (dates[0] >= yesterday) {
             currentStreak = 1;
             for (let i = 0; i < dates.length - 1; i++) {
                 const currentDate = dates[i];
@@ -1266,7 +1243,7 @@ class FitTracker {
                 if (previousDate.getTime() === expectedPrevious.getTime()) {
                     currentStreak++;
                 } else {
-                    break; // Streak broken
+                    break;
                 }
             }
         }
@@ -1295,5 +1272,6 @@ if ('serviceWorker' in navigator) {
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FitTracker;
-}
+}; // Added semicolon
+
 // Ensure there's a newline at the end of the file
