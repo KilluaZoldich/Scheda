@@ -546,17 +546,16 @@ class FitTracker {
                 const exerciseCard = this.createExerciseCard(exercise, index, isSessionActive);
                 exercisesList.appendChild(exerciseCard);
             });
-             if(startWorkoutBtn) startWorkoutBtn.disabled = isSessionActive; // Disable start if session active
+             if(startWorkoutBtn) startWorkoutBtn.disabled = isSessionActive;
         } else {
             exercisesList.innerHTML = '<p class="no-data">Nessun esercizio in questo giorno. Aggiungine uno!</p>';
-            if(startWorkoutBtn) startWorkoutBtn.disabled = true; // Disable start if no exercises
+            if(startWorkoutBtn) startWorkoutBtn.disabled = true;
         }
 
         document.querySelectorAll('.exercise-controls').forEach(controls => {
             controls.style.display = isSessionActive ? 'flex' : 'none';
         });
-         // Disable CRUD buttons for exercises if session is active
-        document.querySelectorAll('.btn-edit-exercise, .btn-delete-exercise').forEach(btn => {
+         document.querySelectorAll('.btn-edit-exercise, .btn-delete-exercise').forEach(btn => {
             btn.disabled = isSessionActive;
         });
 
@@ -565,56 +564,57 @@ class FitTracker {
 
     createExerciseCard(exercise, index, isSessionActive) {
         const card = document.createElement('div');
-        card.className = 'exercise-card-v2';
+        card.className = 'exercise-card-apple'; // Usa la nuova classe CSS
         
         const sessionExerciseData = (this.sessionData && this.sessionData.active && this.sessionData.exercises && this.sessionData.exercises[index.toString()])
                                     ? this.sessionData.exercises[index.toString()].sets
                                     : [];
 
+        // Definisci le icone SVG come stringhe (o usa percorsi se preferisci averle come file separati)
+        const clockIcon = `<svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+        const repsIcon = `<svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>`; // Esempio per reps/serie
+        const moreActionsIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>`;
+        const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+        const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+        const addSetIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+
+
         card.innerHTML = `
-            <div class="exercise-header">
+            <div class="exercise-card-header">
                 <h3 class="exercise-name">${exercise.name}</h3>
-                <div class="exercise-actions">
+                <div class="exercise-item-actions">
                     <button class="btn-icon btn-edit-exercise" onclick="fitTracker.openExerciseEditor('${this.currentDay}', ${index})" aria-label="Modifica Esercizio" ${isSessionActive ? 'disabled' : ''}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        ${editIcon}
                     </button>
                     <button class="btn-icon btn-delete-exercise" onclick="fitTracker.deleteExercise('${this.currentDay}', ${index})" aria-label="Elimina Esercizio" ${isSessionActive ? 'disabled' : ''}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        ${deleteIcon}
                     </button>
                 </div>
             </div>
             
-            <div class="exercise-details-grid">
-                <div class="detail-item">
-                    <span class="detail-label">Serie</span>
-                    <span class="detail-value" id="sets-planned-${this.currentDay}-${index}">${exercise.sets}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Ripetizioni</span>
-                    <span class="detail-value" id="reps-planned-${this.currentDay}-${index}">${exercise.reps}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Riposo</span>
-                    <span class="detail-value">
-                        <svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        ${this.formatTime(exercise.rest)}
-                    </span>
-                </div>
-                 <div class="detail-item">
-                    <span class="detail-label">RPE</span>
-                    <span class="detail-value">${exercise.rpe || '-'}</span>
-                </div>
+            <div class="exercise-summary-details">
+                <span class="summary-detail">
+                    ${repsIcon}
+                    <strong>${exercise.sets}</strong> serie × <strong>${exercise.reps}</strong> reps
+                </span>
+                <span class="summary-detail">
+                    ${clockIcon}
+                    <strong>${this.formatTime(exercise.rest)}</strong> riposo
+                </span>
+                <span class="summary-detail">
+                    RPE <strong>${exercise.rpe || '-'}</strong>
+                </span>
             </div>
             
-            ${exercise.notes ? `<div class="exercise-notes">${exercise.notes}</div>` : ''}
+            ${exercise.notes ? `<div class="exercise-notes-container"><p class="exercise-notes-preview">${exercise.notes}</p></div>` : ''}
             
             <div class="exercise-sets-tracking" id="sets-tracking-${this.currentDay}-${index}" style="display: ${isSessionActive ? 'flex' : 'none'}; flex-direction: column; gap: var(--spacing-xs);">
                 ${this.renderSetTrackers(exercise, index, isSessionActive, sessionExerciseData)}
             </div>
 
-            <div class="exercise-controls" style="display: ${isSessionActive ? 'flex' : 'none'};">
+            <div class="exercise-session-controls" style="display: ${isSessionActive ? 'flex' : 'none'};">
                 <button class="btn btn--secondary btn--sm" onclick="fitTracker.addSet('${this.currentDay}', ${index})">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    ${addSetIcon}
                     Aggiungi Set
                 </button>
             </div>
@@ -628,6 +628,12 @@ class FitTracker {
         const numActualSets = sessionSets.length;
         const numSetsToRender = Math.max(numPlannedSets, numActualSets);
 
+        const weightIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>`;
+        const repsIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>`;
+        const checkIconSVG = `<svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const circleIconSVG = `<svg class="circle-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>`;
+
+
         for (let i = 0; i < numSetsToRender; i++) {
             const setData = sessionSets[i] || {};
             const weightValue = setData.weight || '';
@@ -635,22 +641,23 @@ class FitTracker {
             const isCompleted = setData.completed || false;
 
             html += `
-                <div class="set-tracker-item ${isCompleted ? 'completed' : ''}" id="set-${this.currentDay}-${exerciseIndex}-${i}">
-                    <span class="set-number">Set ${i + 1}</span>
-                    <div class="weight-input-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C9.24 5 7 7.24 7 10v5h10v-5C17 7.24 14.76 5 12 5z"></path><path d="M20.54 15H3.46"></path><path d="M15.23 15.23C13.43 17.03 10.57 17.03 8.77 15.23"></path><path d="M12 22V10"></path><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
-                        <input type="number" class="weight-input set-weight-input" placeholder="Peso" value="${weightValue}"
+                <div class="set-tracker-row ${isCompleted ? 'completed' : ''}" id="set-${this.currentDay}-${exerciseIndex}-${i}">
+                    <span class="set-number-badge">Set ${i + 1}</span>
+                    <div class="set-input-group">
+                        ${weightIconSVG}
+                        <input type="number" class="set-input-weight" placeholder="--" value="${weightValue}"
                                id="weight-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="0.25" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
-                        <span class="weight-unit">kg</span>
+                        <span>kg</span>
                     </div>
-                    <div class="reps-input-wrapper">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
-                        <input type="number" class="reps-input set-reps-input" placeholder="Reps" value="${repsValue}"
+                    <div class="set-input-group">
+                         ${repsIconSVG}
+                        <input type="number" class="set-input-reps" placeholder="--" value="${repsValue}"
                                id="reps-${this.currentDay}-${exerciseIndex}-${i}" min="0" step="1" ${!isSessionActive ? 'disabled' : ''} oninput="fitTracker.saveSetDataOnInput('${this.currentDay}', ${exerciseIndex}, ${i})">
+                        <span>reps</span>
                     </div>
-                    <button class="btn-icon set-complete-btn" onclick="fitTracker.toggleSetComplete('${this.currentDay}', ${exerciseIndex}, ${i})" aria-label="Completa set" ${!isSessionActive ? 'disabled' : ''}>
-                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <svg class="circle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                    <button class="set-complete-button" onclick="fitTracker.toggleSetComplete('${this.currentDay}', ${exerciseIndex}, ${i})" aria-label="Completa set" ${!isSessionActive ? 'disabled' : ''}>
+                        ${checkIconSVG}
+                        ${circleIconSVG}
                     </button>
                 </div>
             `;
@@ -666,11 +673,9 @@ class FitTracker {
         const exercise = this.workoutData[dayId].exercises[exerciseIndex];
         const setsTrackingDiv = document.getElementById(`sets-tracking-${dayId}-${exerciseIndex}`);
 
-        // Troviamo il numero di set attualmente visualizzati per questo esercizio
-        const currentDisplayedSets = setsTrackingDiv.querySelectorAll('.set-tracker-item').length;
-        const newSetIndex = currentDisplayedSets; // L'indice del nuovo set sarà il conteggio attuale
+        const currentDisplayedSets = setsTrackingDiv.querySelectorAll('.set-tracker-row').length;
+        const newSetIndex = currentDisplayedSets;
 
-        // Aggiungere il nuovo set a sessionData prima di renderizzare
         const exerciseKey = exerciseIndex.toString();
         if (!this.sessionData.exercises[exerciseKey]) {
             this.sessionData.exercises[exerciseKey] = {
@@ -678,21 +683,15 @@ class FitTracker {
                 sets: []
             };
         }
-        // Assicura che l'array sets sia abbastanza lungo
         while (this.sessionData.exercises[exerciseKey].sets.length <= newSetIndex) {
             this.sessionData.exercises[exerciseKey].sets.push({ weight: '', reps: '', completed: false });
         }
-        // Non è necessario modificare exercise.sets in workoutData per i set aggiunti dinamicamente durante la sessione
 
-        // Ora, ri-renderizza TUTTI i set tracker per questo esercizio, usando i dati aggiornati da sessionData
-        // (o i dati di default se non ci sono ancora dati di sessione per questo set specifico)
         const sessionSets = this.sessionData.exercises[exerciseKey] ? this.sessionData.exercises[exerciseKey].sets : [];
         setsTrackingDiv.innerHTML = this.renderSetTrackers(exercise, exerciseIndex, true, sessionSets);
 
-        // Aggiorna il contatore delle serie visualizzato se il design lo prevede
         const setsPlannedElement = document.getElementById(`sets-planned-${dayId}-${exerciseIndex}`);
         if (setsPlannedElement) {
-             // Mostra il numero maggiore tra i set pianificati e quelli tracciati
             setsPlannedElement.textContent = Math.max(parseInt(exercise.sets) || 0, newSetIndex + 1);
         }
     }
@@ -764,7 +763,7 @@ class FitTracker {
     }
 
     startWorkoutSession() {
-        if (!this.currentDay || !this.workoutData[this.currentDay] || !this.workoutData[this.currentDay].exercises.length === 0) {
+        if (!this.currentDay || !this.workoutData[this.currentDay] || this.workoutData[this.currentDay].exercises.length === 0) {
             alert("Nessun esercizio in questa scheda per iniziare l'allenamento. Aggiungi prima degli esercizi.");
             return;
         }
@@ -774,6 +773,16 @@ class FitTracker {
             startTime: new Date(),
             exercises: {}
         };
+        // Pre-popola sessionData.exercises basandosi sulla scheda corrente per avere già gli slot per i set
+        const currentExercises = this.workoutData[this.currentDay].exercises;
+        currentExercises.forEach((exercise, index) => {
+            const exerciseKey = index.toString();
+            this.sessionData.exercises[exerciseKey] = {
+                name: exercise.name,
+                sets: Array(parseInt(exercise.sets) || 0).fill(null).map(() => ({ weight: '', reps: '', completed: false }))
+            };
+        });
+
 
         document.getElementById('startWorkoutSessionBtn').style.display = 'none';
         document.getElementById('endWorkoutSessionBtn').style.display = 'flex';
@@ -785,7 +794,7 @@ class FitTracker {
 
 
         this.renderWorkout(true);
-        console.log("Workout session started for day:", this.currentDay);
+        console.log("Workout session started for day:", this.currentDay, "with sessionData:", JSON.parse(JSON.stringify(this.sessionData)));
     }
 
     endWorkoutSession() {
