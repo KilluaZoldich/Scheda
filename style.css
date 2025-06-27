@@ -359,6 +359,8 @@ select.form-control {
   align-items: center;
   gap: var(--spacing-sm);
   width: 100%;
+  position: relative; /* Per contesto di stacking se necessario per il select */
+  z-index: 2; /* Assicura che il selettore e i suoi bottoni siano sopra elementi sottostanti */
 }
 
 #daySelector.form-control {
@@ -377,6 +379,8 @@ select.form-control {
   background-repeat: no-repeat;
   background-position: right var(--spacing-md) center;
   padding-right: calc(var(--spacing-md) + 24px);
+  position: relative; /* Per z-index se necessario (anche se il parent dovrebbe bastare) */
+  z-index: 1; /* Inferiore ai bottoni di gestione se si sovrapponessero in modo strano */
 }
 @media (prefers-color-scheme: dark) {
   #daySelector.form-control {
@@ -432,8 +436,12 @@ select.form-control {
   height: 18px;
   stroke: currentColor;
 }
-.day-management-buttons .btn--danger-icon svg {
+.day-management-buttons .btn--danger-icon svg { /* Specifica per l'icona del bottone delete */
     stroke: var(--color-error) !important;
+}
+.day-management-buttons .btn--icon-only {
+    position: relative; /* Per z-index se necessario */
+    z-index: 2; /* Assicura che siano sopra il select se ci fossero strane sovrapposizioni */
 }
 
 
@@ -443,6 +451,9 @@ select.form-control {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
     border-radius: var(--radius-button);
+    width: 100%; /* Assicura full-width esplicitamente */
+    position: relative; /* Per contesto z-index */
+    z-index: 1; /* Sotto day-selector-area se necessario, ma improbabile con flex-column */
 }
 #startWorkoutSessionBtn:disabled {
     background-color: var(--color-primary);
@@ -1029,7 +1040,7 @@ select.form-control {
   background: rgba(var(--color-surface-rgb),0.85); /* Materiale più denso */
   border-top: 0.5px solid var(--color-border);
   display: flex;
-  padding: var(--spacing-xs) 0 env(safe-area-inset-bottom); /* Padding ridotto e safe area */
+  padding: var(--spacing-xs) 0 calc(var(--spacing-xs) + env(safe-area-inset-bottom)); /* Corretto padding-bottom */
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   z-index: 1000;
